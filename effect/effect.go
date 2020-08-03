@@ -52,7 +52,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 	for x := 0; x < size.X; x++ {
 		for y := 0; y < size.Y; y++ {
 			red, green, blue, alpha = img.At(x, y).RGBA()
-			code = fmt.Sprintf("effect(%d,%d,[%d,%d,%d,%d]);",
+			code = fmt.Sprintf("effect(%d,%d,{r:%d,g:%d,b:%d,a:%d});",
 				x, y, red, green, blue, alpha)
 			ret, err = vm.Run(code)
 			if err != nil {
@@ -62,7 +62,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 				return fmt.Errorf("error while processing image: function return value isn't Object")
 			}
 			obj = ret.Object()
-			ret, err = obj.Get("R")
+			ret, err = obj.Get("r")
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
@@ -71,7 +71,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
 			red = uint32(tmp)
-			ret, err = obj.Get("G")
+			ret, err = obj.Get("g")
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
@@ -80,7 +80,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
 			green = uint32(tmp)
-			ret, err = obj.Get("B")
+			ret, err = obj.Get("b")
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
@@ -89,7 +89,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
 			blue = uint32(tmp)
-			ret, err = obj.Get("A")
+			ret, err = obj.Get("a")
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
