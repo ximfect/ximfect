@@ -1,0 +1,5 @@
+*.exe
+*.png
+*.jpg
+*.jpeg
+go.sum
