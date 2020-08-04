@@ -9,11 +9,13 @@ import (
 
 // PrepareVM adds all the API functions to a VM.
 func PrepareVM(vm *otto.Otto, img *image.RGBA) {
+	size := img.Bounds().Size()
 	vm.Set("ImageSize", func(call otto.FunctionCall) otto.Value {
-		obj := otto.Object{}
-		obj.Set("x", img.Bounds().Size().X)
-		obj.Set("y", img.Bounds().Size().Y)
-		return obj.Value()
+		sizemap := make(map[string]int)
+		sizemap["x"] = size.X
+		sizemap["y"] = size.Y
+		val, _ := vm.ToValue(sizemap)
+		return val
 	})
 	vm.Set("ImageAt", func(call otto.FunctionCall) otto.Value {
 		colormap := make(map[string]int)

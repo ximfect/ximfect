@@ -3,6 +3,7 @@ package effect
 import (
 	"fmt"
 	"os"
+	"strings"
 	"ximfect/cfg"
 	"ximfect/environ"
 )
@@ -67,11 +68,13 @@ func Load(path, id string) (*Effect, error) {
 	metaParsed = cfg.Parse(metaSource)
 
 	var (
-		name    string
-		version string
-		author  string
-		desc    string
-		ok      bool
+		name       string
+		version    string
+		author     string
+		desc       string
+		preloadRaw string
+		preload    []string
+		ok         bool
 	)
 
 	name, ok = metaParsed["name"]
@@ -94,8 +97,14 @@ func Load(path, id string) (*Effect, error) {
 		return nil, fmt.Errorf(
 			"error while applying metadata: could not find required field `desc`")
 	}
+	preloadRaw, ok = metaParsed["preload"]
+	if ok {
+		preload = strings.Split(preloadRaw, " ")[1:]
+	} else {
+		preload = []string{}
+	}
 
-	meta = &(Metadata{name, version, id, author, desc})
+	meta = &(Metadata{name, version, id, author, desc, preload})
 	fx = NewEffect(meta, script)
 	return fx, nil
 }

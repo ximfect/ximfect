@@ -36,11 +36,13 @@ func main() {
 			version := fx.Metadata.Version
 			author := fx.Metadata.Author
 			desc := fx.Metadata.Desc
+			preload := fx.Metadata.Preload
 			fmt.Printf("======== About %s ========\n", eff.Value)
 			fmt.Printf("Name:           %s\n", name)
 			fmt.Printf("Version:        %s\n", version)
 			fmt.Printf("Author:         %s\n", author)
 			fmt.Printf("Description:    %s\n", desc)
+			fmt.Printf("Preload:         %v\b", preload)
 		}
 	}
 	if _, apply := args["apply"]; apply {

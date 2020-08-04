@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"os"
+	"ximfect/environ"
 
 	"github.com/robertkrimen/otto"
 )
@@ -15,6 +17,7 @@ type Metadata struct {
 	ID      string
 	Author  string
 	Desc    string
+	Preload []string
 }
 
 // Effect represents an effect that can be applied to an Image
@@ -45,6 +48,19 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 		tmp   int64
 		err   error
 	)
+	if len(e.Metadata.Preload) > 0 {
+		for _, filename := range e.Metadata.Preload {
+			file, err := os.Open(
+				environ.AppdataPath("effects", e.Metadata.ID, filename))
+			if err != nil {
+				return fmt.Errorf("error during effect preload: %v", err)
+			}
+			_, err = vm.Run(file)
+			if err != nil {
+				return fmt.Errorf("error during effect preload: %v", err)
+			}
+		}
+	}
 	_, err = vm.Run(e.source)
 	if err != nil {
 		return fmt.Errorf("error while loading effect: %v", err)
@@ -53,7 +69,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 		for y := 0; y < size.Y; y++ {
 			red, green, blue, alpha = img.At(x, y).RGBA()
 			code = fmt.Sprintf("effect(%d,%d,{r:%d,g:%d,b:%d,a:%d});",
-				x, y, red, green, blue, alpha)
+				y, x, red, green, blue, alpha)
 			ret, err = vm.Run(code)
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
