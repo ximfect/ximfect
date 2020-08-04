@@ -49,6 +49,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 		err   error
 	)
 	if len(e.Metadata.Preload) > 0 {
+		fmt.Println("Preloading...")
 		for _, filename := range e.Metadata.Preload {
 			file, err := os.Open(
 				environ.AppdataPath("effects", e.Metadata.ID, filename))
@@ -65,11 +66,12 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 	if err != nil {
 		return fmt.Errorf("error while loading effect: %v", err)
 	}
-	for x := 0; x < size.X; x++ {
-		for y := 0; y < size.Y; y++ {
+	fmt.Println("Applying effect...")
+	for y := 0; y < size.Y; y++ {
+		for x := 0; x < size.X; x++ {
 			red, green, blue, alpha = img.At(x, y).RGBA()
 			code = fmt.Sprintf("effect(%d,%d,{r:%d,g:%d,b:%d,a:%d});",
-				y, x, red, green, blue, alpha)
+				x, y, red, green, blue, alpha)
 			ret, err = vm.Run(code)
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
@@ -117,6 +119,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 			img.SetRGBA(x, y, color.RGBA{uint8(red), uint8(green), uint8(blue), uint8(alpha)})
 		}
 	}
+	fmt.Println("Finished!")
 	return nil
 }
 
