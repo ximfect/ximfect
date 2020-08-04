@@ -54,11 +54,15 @@ func PrepareVM(vm *otto.Otto, img *image.RGBA) {
 func Apply(fx *Effect, img *image.RGBA) error {
 	vm := otto.New()
 	PrepareVM(vm, img)
-	return fx.Run(vm, img)
+	man := NewWorkerManager(4, fx, vm)
+	man.Run(img)
+	return nil
 }
 
 // ApplyOn does what Apply does but on an existing VM.
 // This assumes that the VM has been prepared already.
 func ApplyOn(vm *otto.Otto, fx *Effect, img *image.RGBA) error {
-	return fx.Run(vm, img)
+	man := NewWorkerManager(4, fx, vm)
+	man.Run(img)
+	return nil
 }
