@@ -10,11 +10,16 @@ import (
 )
 
 func main() {
+	args := tool.GetArgv()
+
+	if _, ver := args["version"]; ver {
+		fmt.Println(tool.Version)
+		return
+	}
+
 	fmt.Println("ximfect v" + tool.Version)
 	fmt.Println("Learn more at https://github.com/QeaML/ximfect")
 	fmt.Println("")
-
-	args := tool.GetArgv()
 
 	eff, hasEffect := args["effect"]
 	filename, hasFile := args["file"]
@@ -27,7 +32,15 @@ func main() {
 				fmt.Println(err)
 				return
 			}
-			fmt.Println(fx.Metadata)
+			name := fx.Metadata.Name
+			version := fx.Metadata.Version
+			author := fx.Metadata.Author
+			desc := fx.Metadata.Desc
+			fmt.Printf("======== About %s ========\n", eff.Value)
+			fmt.Printf("Name:           %s\n", name)
+			fmt.Printf("Version:        %s\n", version)
+			fmt.Printf("Author:         %s\n", author)
+			fmt.Printf("Description:    %s\n", desc)
 		}
 	}
 	if _, apply := args["apply"]; apply {

@@ -1,5 +1,11 @@
+<center>
+
 # ximfect
 *An effect-based image processing tool.*
+
+![](img/ximfect.png)
+
+</center>
 
 # About
 ximfect uses JavaScript to write effects that process images on a pixel-by-pixel basis.
