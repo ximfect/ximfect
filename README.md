@@ -1,14 +1,12 @@
 <center>
-
-# ximfect
-*An effect-based image processing tool.*
-
-![](img/ximfect.png)
-
+<h1>ximfect</h1>
+<i>An effect-based image processing tool.</i>
+<img src="img/ximfect.png" alt="ximfect logo">
 </center>
 
-# About
-ximfect uses JavaScript to write effects that process images on a pixel-by-pixel basis.
+
+# Need help?
+[Join the official Discord server!](https://discord.gg/AGPZyUE)
 
 # Usage
 `ximfect --apply --effect <effect> --file <source filename, only supports png> --out <output filename, only supports png>`
