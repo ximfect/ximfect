@@ -8,12 +8,28 @@
 [Join the official Discord server!](https://discord.gg/AGPZyUE)
 
 # Usage
-`ximfect --apply --effect <effect> --file <source filename, only supports png> --out <output filename, only supports png>`
+`ximfect (action) <--namedArgument value --otherArgument other value ...>`
 
-Effects are placed in APPDATA/ximfect/effects in separate subdirectories.
+You can install effects from `.zip` files using the `unpack` action.
 
 # How to install (Windows)
-Go to the releases page, and download the latest version. Inside the downloaded zip file, you should find a `ximfect.exe` file and a folder called `effects`. Extract `ximfect.exe` to a location with a favorable name (e.g. `C:\ximfect`) and add that location to your PATH. Next, find your way to your `%APPDATA%` folder. In there, create a folder named `ximfect` and extract the `effects` folder into the folder you just created.
+
+## Release (stable)
+1. Go to the [Releases](https://github.com/QeaML/ximfect/releases) page.
+2. Download the latest release's `ximfect-v(...).zip` file.
+3. Open the file, and extract the `ximfect.exe` file to a favorable location (e.g. `C:\ximfect`)
+4. (If you haven't already) Add that location to your PATH.
+5. Open your APPDATA folder.
+6. (If it doesn't exist) Create a `ximfect` directory.
+7. (If there isn't one) Extract the `effects` directory from the zip file into the directory you just created.
+8. **Done!**
+
+## Development (no guarantee)
+1. Clone this repository to your computer.
+2. Inside your command prompt(can't be PowerShell), navigate to the repository's directory. (called ximfect)
+3. Run `pack`.
+4. A release-ready zip file should've been created. Perform the standard release installation instructions, starting with step 3.
+5. **Done!**
 
 # How to effects
 Effects are recognized by their id, which is the name of the folder containing their files.
@@ -44,3 +60,5 @@ Author = qeaml <qeaml@pm.me>
 # a short description
 Desc = Does literally nothing.
 ```
+
+The easiest way to install an effect, is to store the **directory containing the effect's files** in a zip file, then dragging and dropping the zip file onto the ximfect executable. You can also distribute the zip file, others can install it in the same way.
