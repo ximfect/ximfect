@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"ximfect/effect"
+	"ximfect/environ"
 	"ximfect/tool"
 )
 
@@ -25,6 +26,14 @@ func main() {
 	}
 
 	action := args.PosArgs[0].Value
+
+	if strings.HasSuffix(action, ".zip") {
+		err := environ.Unzip(action, environ.AppdataPath("effects"))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
 
 	eff, hasEffect := args.NamedArgs["effect"]
 	filename, hasFile := args.NamedArgs["file"]
@@ -99,5 +108,30 @@ func main() {
 		}
 	case "version":
 		fmt.Println(tool.Version)
+	case "pack":
+		if hasEffect {
+			_, err := effect.LoadFromAppdata(eff.Value)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			err = environ.ZipIt(environ.AppdataPath("effects", eff.Value), eff.Value+".zip")
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		} else {
+			fmt.Println("Please specify an effect with --effect <id>")
+		}
+	case "unpack":
+		if hasFile {
+			err := environ.Unzip(filename.Value, environ.AppdataPath("effects"))
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		} else {
+			fmt.Println("Please specify an input file with --file <filename>")
+		}
 	}
 }
