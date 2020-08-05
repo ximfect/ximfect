@@ -1,5 +1,0 @@
-Name = Flip!
-Version = 1.0.0
-Author = qeaml <qeaml@pm.me>
-Desc = Flip the image horizontally.
-Preload = setsize.js
