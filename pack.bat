@@ -28,7 +28,7 @@ echo Packaging...
     7z a ximfect.zip ximfect.exe -bso0
     7z a ximfect.zip effects\ -bso0
     :: Usually the output would be more like `ximfect.zip` but we are in fancy town
-    for /f "tokens=*" %%g in ('ximfect --version') do (set zipname=ximfect-v%%g.zip)
+    for /f "tokens=*" %%g in ('ximfect version --silent _') do (set zipname=ximfect-v%%g.zip)
     ren ximfect.zip %zipname%
     move %zipname% .. > NUL
     cd ..
