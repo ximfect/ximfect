@@ -24,7 +24,10 @@ jobs:
 
     - name: Get dependencies
       run: |
+        cd src
         go get ./...
 
     - name: Build
-      run: go build
+      run: |
+        cd src
+        go build
