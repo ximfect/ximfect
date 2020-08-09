@@ -32,6 +32,9 @@ jobs:
         cd src
         go build
 
+    - name: Test
+      run: src\ximfect.exe test --out test.png
+
   build-ubuntu:
     name: Build on Ubuntu
     runs-on: ubuntu-latest
@@ -55,3 +58,6 @@ jobs:
       run: |
         cd src
         go build
+
+    - name: Test
+      run: ./src/ximfect test --out test.png
