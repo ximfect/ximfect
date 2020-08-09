@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"image/png"
 	"os"
 	"strings"
@@ -10,6 +11,11 @@ import (
 	"ximfect/environ"
 	"ximfect/tool"
 )
+
+func exitWithError(err ...interface{}) {
+	fmt.Println(err...)
+	os.Exit(1)
+}
 
 func main() {
 	args := tool.GetArgv(os.Args)
@@ -22,7 +28,7 @@ func main() {
 
 	if len(args.PosArgs) == 0 {
 		fmt.Println("Not enough positional arguments!")
-		return
+		os.Exit(1)
 	}
 
 	action := args.PosArgs[0].Value
@@ -31,7 +37,7 @@ func main() {
 		err := environ.Unzip(action, environ.AppdataPath("effects"))
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(0)
 		}
 	}
 
@@ -61,63 +67,63 @@ func main() {
 				fmt.Printf("Preload:         %v\n", strings.Join(preload, ", "))
 			}
 		} else {
-			fmt.Println("Please specify an effect with --effect <id>")
+			exitWithError("Please specify an effect with --effect <id>")
 		}
 	case "apply":
 		if hasEffect {
+			fmt.Println("Applying effect...")
 			fx, err := effect.LoadFromAppdata(eff.Value)
 			if err != nil {
-				fmt.Println(err)
-				return
+				exitWithError(err)
 			}
 			if hasFile {
 				file, err := os.Open(filename.Value)
 				if err != nil {
-					fmt.Println(err)
-					return
+					exitWithError(err)
 				}
 				imgR, _, err := image.Decode(file)
 				if err != nil {
-					fmt.Println(err)
-					return
+					exitWithError(err)
 				}
 				if img, ok := imgR.(*image.RGBA); ok {
 					err = effect.Apply(fx, img)
 					if err != nil {
-						fmt.Println(err)
-					} else if hasOutFile {
+						exitWithError(err)
+					}
+					if hasOutFile {
 						outFile, err := os.Create(outFilename.Value)
 						if err != nil {
-							fmt.Println(err)
+							exitWithError(err)
 							return
 						}
 						err = png.Encode(outFile, img)
 						if err != nil {
-							fmt.Println(err)
+							exitWithError(err)
 							return
 						}
 					} else {
-						fmt.Println("Please specify an output file with --out <filename>")
+						exitWithError("Please specify an output file with --out <filename>")
 					}
 				}
 			} else {
-				fmt.Println("Please specify an input file with --file <filename>")
+				exitWithError("Please specify an input file with --file <filename>")
 			}
 		} else {
-			fmt.Println("Please specify an effect with --effect <id>")
+			exitWithError("Please specify an effect with --effect <id>")
 		}
 	case "version":
 		fmt.Println(tool.Version)
 	case "pack":
 		if hasEffect {
+			fmt.Println("Packing effect...")
 			_, err := effect.LoadFromAppdata(eff.Value)
 			if err != nil {
-				fmt.Println(err)
+				exitWithError(err)
 				return
 			}
 			err = environ.ZipIt(environ.AppdataPath("effects", eff.Value), eff.Value+".zip")
 			if err != nil {
-				fmt.Println(err)
+				exitWithError(err)
 				return
 			}
 		} else {
@@ -125,13 +131,43 @@ func main() {
 		}
 	case "unpack":
 		if hasFile {
+			fmt.Println("Unpacking and installing effect...")
 			err := environ.Unzip(filename.Value, environ.AppdataPath("effects"))
 			if err != nil {
-				fmt.Println(err)
+				exitWithError(err)
 				return
 			}
 		} else {
-			fmt.Println("Please specify an input file with --file <filename>")
+			exitWithError("Please specify an input file with --file <filename>")
 		}
+	case "test":
+		if hasOutFile {
+			fmt.Println("Generating test image...")
+			img := image.NewRGBA(image.Rect(0, 0, 255, 255))
+			var (
+				x int
+				y int
+			)
+			for y = 0; y < 255; y++ {
+				for x = 0; x < 255; x++ {
+					img.SetRGBA(x, y, color.RGBA{uint8(x + 1), uint8(y + 1), 255, 255})
+				}
+			}
+			outFile, err := os.Create(outFilename.Value)
+			if err != nil {
+				exitWithError(err)
+				return
+			}
+			err = png.Encode(outFile, img)
+			if err != nil {
+				exitWithError(err)
+				return
+			}
+		} else {
+			exitWithError("Please specify an output file with --out <filename>")
+		}
+	default:
+		exitWithError("Unknown action:", action)
 	}
+	os.Exit(0)
 }
