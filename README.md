@@ -12,24 +12,18 @@
 
 You can install effects from `.zip` files using the `unpack` action.
 
-# How to install (Windows)
+# How to install
 
-## Release (stable)
+*Please note that there are no Linux binaries currently availible.*
+
 1. Go to the [Releases](https://github.com/QeaML/ximfect/releases) page.
 2. Download the latest release's `ximfect-v(...).zip` file.
-3. Open the file, and extract the `ximfect.exe` file to a favorable location (e.g. `C:\ximfect`)
+3. Open the file, and extract the `ximfect` file to a favorable location (`C:\ximfect`)
 4. (If you haven't already) Add that location to your PATH.
 5. Open your APPDATA folder.
 6. (If it doesn't exist) Create a `ximfect` directory.
 7. (If there isn't one) Extract the `effects` directory from the zip file into the directory you just created.
 8. **Done!**
-
-## Development (no guarantee)
-1. Clone this repository to your computer.
-2. Inside your command prompt(can't be PowerShell), navigate to the repository's directory. (called ximfect)
-3. Run `pack`.
-4. A release-ready zip file should've been created. Perform the standard release installation instructions, starting with step 3.
-5. **Done!**
 
 # How to effects
 Effects are recognized by their id, which is the name of the folder containing their files.
