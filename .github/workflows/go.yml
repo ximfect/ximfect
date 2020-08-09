@@ -8,9 +8,33 @@ on:
 
 jobs:
 
-  build:
+  build-win:
     name: Build on Windows
     runs-on: windows-latest
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.13
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: |
+        cd src
+        go get ./...
+
+    - name: Build
+      run: |
+        cd src
+        go build
+
+  build-ubuntu:
+    name: Build on Ubuntu
+    runs-on: ubuntu-latest
     steps:
 
     - name: Set up Go 1.x
