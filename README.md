@@ -14,18 +14,34 @@ You can install effects from `.zip` files using the `unpack` action.
 
 # How to install
 
-*Please note that there are no Linux binaries currently availible.*
-
 1. Go to the [Releases](https://github.com/QeaML/ximfect/releases) page.
-2. Download the latest release's `ximfect-v(...).zip` file.
-3. Open the file, and extract the `ximfect` file to a favorable location (`C:\ximfect`)
-4. (If you haven't already) Add that location to your PATH.
-5. Open your APPDATA folder.
-6. (If it doesn't exist) Create a `ximfect` directory.
-7. (If there isn't one) Extract the `effects` directory from the zip file into the directory you just created.
+2. Find the release you wish to install.
+3. Download the executable for your OS+architecture combo.
+4. Move your executable to a favorable location. (Windows: `C:\ximfect`, Linux: `/usr/bin`)
+5. Rename the executable to be just `ximfect`. (`ximfect.exe` on Windows)
+6. If you wish to install the pre-packaged effects, look for a tutorial below.
+7. (Windows-only) Add `C:\ximfect` to you PATH.
 8. **Done!**
 
-# How to effects
+# How to install effects
+
+## Release effects
+
+1. Go to the [Releases](https://github.com/QeaML/ximfect/releases) page.
+2. Find the release you have installed. (check with `ximfect version`)
+3. Download the `effects.zip` file.
+4. Using your command prompt/terminal, navigate to the folder you downloaded the file.
+5. Run `ximfect unpack --file effects.zip`.
+6. **Done!**
+
+## User-made effects
+
+1. Download the provided `.zip` file of your effect(s).
+2. Using your command prompt/terminal, navigate to the folder you downloaded the file.
+3. Run `ximfect unpack --file (effect(s) .zip file)`.
+4. **Done!**
+
+# How to create effects
 Effects are recognized by their id, which is the name of the folder containing their files.
 
 The brains of the effect is the `effect.js` file, which is structured like this:
@@ -55,4 +71,4 @@ Author = qeaml <qeaml@pm.me>
 Desc = Does literally nothing.
 ```
 
-The easiest way to install an effect, is to store the **directory containing the effect's files** in a zip file, then dragging and dropping the zip file onto the ximfect executable. You can also distribute the zip file, others can install it in the same way.
+You can distribute the effect you made with `ximfect pack`. Simply running `ximfect pack --effect (your effect's id)` will make ximfect drop a `.zip` file in the folder you ran it, which contains the effect in a distributable form. Above is a tutorial on installing effects.
