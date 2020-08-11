@@ -3,6 +3,7 @@ package effect
 import (
 	"fmt"
 	"image"
+	"ximfect/libs"
 
 	"github.com/robertkrimen/otto"
 )
@@ -10,6 +11,20 @@ import (
 // PrepareVM adds all the API functions to a VM.
 func PrepareVM(vm *otto.Otto, img *image.RGBA) {
 	size := img.Bounds().Size()
+	vm.Set("Require", func(call otto.FunctionCall) otto.Value {
+		libName, err := call.Argument(0).ToString()
+		if err != nil {
+			fmt.Println(err)
+			return otto.Value{}
+		}
+		lib, err := libs.LoadFromAppdata(libName)
+		if err != nil {
+			fmt.Println(err)
+			return otto.Value{}
+		}
+		libs.ApplyLib(vm, lib)
+		return otto.Value{}
+	})
 	vm.Set("ImageSize", func(call otto.FunctionCall) otto.Value {
 		sizemap := make(map[string]int)
 		sizemap["x"] = size.X

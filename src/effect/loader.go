@@ -2,7 +2,6 @@ package effect
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"ximfect/cfg"
 	"ximfect/environ"
@@ -15,25 +14,21 @@ func Load(path, id string) (*Effect, error) {
 	scriptPath := environ.Combine(dir, "effect.js")
 
 	var (
-		err          error
-		metaFile     *os.File
-		scriptFile   *os.File
-		metaBuffer   []byte
-		scriptBuffer []byte
-		metaSource   string
-		metaParsed   cfg.Config
-		script       string
-		meta         *Metadata
-		fx           *Effect
+		err        error
+		metaSource string
+		metaParsed cfg.Config
+		script     string
+		meta       *Metadata
+		fx         *Effect
 	)
 
 	metaSource, err = environ.LoadTextfile(metaPath)
 	if err != nil {
-		return fmt.Errorf("error while loading metadata: %v", err)
+		return nil, fmt.Errorf("error while loading metadata: %v", err)
 	}
 	script, err = environ.LoadTextfile(scriptPath)
 	if err != nil {
-		return fmt.Errorf("error while loading script: %v", err)
+		return nil, fmt.Errorf("error while loading script: %v", err)
 	}
 
 	metaParsed = cfg.Parse(metaSource)
