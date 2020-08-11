@@ -11,3 +11,29 @@ func PrepareAppdata() {
 		os.Mkdir(AppdataPath("effects"), os.ModePerm)
 	}
 }
+
+// LoadTextfile opens and reads a text file, returns it's contents as a string
+func LoadTextfile(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+
+	defer file.Close()
+
+	buffer := make([]byte, 0xFFFF)
+	_, err = file.Read(buffer)
+	if err != nil {
+		return "", err
+	}
+
+	out := ""
+	for _, b := range buffer {
+		if b == 0 {
+			break
+		}
+		out += string(b)
+	}
+
+	return out, nil
+}

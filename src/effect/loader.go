@@ -27,42 +27,13 @@ func Load(path, id string) (*Effect, error) {
 		fx           *Effect
 	)
 
-	metaFile, err = os.Open(metaPath)
+	metaSource, err = environ.LoadTextfile(metaPath)
 	if err != nil {
-		return nil, fmt.Errorf("error while opening metadata file: %v", err)
+		return fmt.Errorf("error while loading metadata: %v", err)
 	}
-	scriptFile, err = os.Open(scriptPath)
+	script, err = environ.LoadTextfile(scriptPath)
 	if err != nil {
-		return nil, fmt.Errorf("error while opening script file: %v", err)
-	}
-
-	defer metaFile.Close()
-	defer scriptFile.Close()
-
-	metaBuffer = make([]byte, 0xFFFF)
-	_, err = metaFile.Read(metaBuffer)
-	if err != nil {
-		return nil, fmt.Errorf("error while reading metadata: %v", err)
-	}
-	metaSource = ""
-	for _, ch := range metaBuffer {
-		if ch == 0 {
-			break
-		}
-		metaSource += string(ch)
-	}
-
-	scriptBuffer = make([]byte, 0xFFFF)
-	_, err = scriptFile.Read(scriptBuffer)
-	if err != nil {
-		return nil, fmt.Errorf("error while reading script: %v", err)
-	}
-	script = ""
-	for _, ch := range scriptBuffer {
-		if ch == 0 {
-			break
-		}
-		script += string(ch)
+		return fmt.Errorf("error while loading script: %v", err)
 	}
 
 	metaParsed = cfg.Parse(metaSource)
