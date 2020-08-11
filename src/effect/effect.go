@@ -38,15 +38,19 @@ func NewEffect(meta *Metadata, src string) *Effect {
 func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 	size := img.Bounds().Size()
 	var (
-		code  string
-		red   uint32
-		green uint32
-		blue  uint32
-		alpha uint32
-		ret   otto.Value
-		obj   *otto.Object
-		tmp   int64
-		err   error
+		code    string
+		red32   uint32
+		green32 uint32
+		blue32  uint32
+		alpha32 uint32
+		red8    uint8
+		green8  uint8
+		blue8   uint8
+		alpha8  uint8
+		ret     otto.Value
+		obj     *otto.Object
+		tmp     int64
+		err     error
 	)
 	if len(e.Metadata.Preload) > 0 {
 		fmt.Println("Preloading...")
@@ -69,9 +73,13 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 	fmt.Println("Applying effect...")
 	for y := 0; y < size.Y; y++ {
 		for x := 0; x < size.X; x++ {
-			red, green, blue, alpha = img.At(x, y).RGBA()
+			red32, green32, blue32, alpha32 = img.At(x, y).RGBA()
+			red8 = uint8(red32 >> 8)
+			green8 = uint8(green32 >> 8)
+			blue8 = uint8(blue32 >> 8)
+			alpha8 = uint8(alpha32 >> 8)
 			code = fmt.Sprintf("effect(%d,%d,{r:%d,g:%d,b:%d,a:%d});",
-				x, y, red, green, blue, alpha)
+				x, y, red8, green8, blue8, alpha8)
 			ret, err = vm.Run(code)
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
@@ -88,7 +96,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
-			red = uint32(tmp)
+			red8 = uint8(tmp)
 			ret, err = obj.Get("g")
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
@@ -97,7 +105,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
-			green = uint32(tmp)
+			green8 = uint8(tmp)
 			ret, err = obj.Get("b")
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
@@ -106,7 +114,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
-			blue = uint32(tmp)
+			blue8 = uint8(tmp)
 			ret, err = obj.Get("a")
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
@@ -115,8 +123,8 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 			if err != nil {
 				return fmt.Errorf("error while processing image: %v", err)
 			}
-			alpha = uint32(tmp)
-			img.SetRGBA(x, y, color.RGBA{uint8(red), uint8(green), uint8(blue), uint8(alpha)})
+			alpha8 = uint8(tmp)
+			img.SetRGBA(x, y, color.RGBA{red8, green8, blue8, alpha8})
 		}
 	}
 	fmt.Println("Finished!")
