@@ -1,4 +1,4 @@
-*.exe
+pack/release/*
 *.zip
 *.png
 *.jpg

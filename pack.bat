@@ -1,36 +1,37 @@
 @echo off
+cd pack
 
-:: Build ximfect
-cls
-    echo Building...
-    cd src
-    if exist ximfect.exe del ximfect.exe
-    go build
-    move ximfect.exe .. > NUL
+:: Add icon to windows executable
+echo = Adding icon...
+
+    for %%f in (ximfect-*.exe) do (
+        ResourceHacker -open %%f -save %%f -action addskip -res ..\img\ximfect.ico -mask ICONGROUP,MAINICON, -log NUL
+        echo -- Added icon to %%f.
+    )
+    
+echo --- Done!
+echo.
+
+:: Package the effects into a .zip file using 7z
+echo = Packaging effects...
+
+    if exist effects.zip del effects.zip
+    cd effects
+    7z a ..\effects.zip * -bso0
     cd ..
-echo Done!
+    
+echo --- Done!
 echo.
 
-:: Add icon to executable
-echo Adding icon...
-    ResourceHacker -open ximfect.exe -save ximfect_new.exe -action addskip -res img/ximfect.ico -mask ICONGROUP,MAINICON, -log NUL
-    del ximfect.exe
-    ren ximfect_new.exe ximfect.exe
-echo Done!
+:: Move all release files into the `release` directory
+echo = Moving into release directory
+
+    move effects.zip release > NUL
+    echo Moved effects.
+    move ximfect-* release > NUL
+    echo Moved executables.
+    
+echo --- Done!
 echo.
 
-:: Package the executable with effects into a distributable zip file
-:: (using 7zip)
-echo Packaging...
-    move ximfect.exe pack > NUL
-    cd pack
-    if exist ximfect.zip del ximfect.zip
-    7z a ximfect.zip ximfect.exe -bso0
-    7z a ximfect.zip effects\ -bso0
-    :: Usually the output would be more like `ximfect.zip` but we are in fancy town
-    for /f "tokens=*" %%g in ('ximfect version --silent _') do (set zipname=ximfect-v%%g.zip)
-    ren ximfect.zip %zipname%
-    move %zipname% .. > NUL
-    cd ..
-echo Done!
-echo.
+cd ..
