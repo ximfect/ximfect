@@ -1,7 +1,8 @@
 <h1><img src="img/ximfect.png" alt="ximfect logo" width="32px" height="32px">&nbsp;ximfect</h1>
-<i>
 An effect-based image processing tool.
 
+
+<i>
 Did you know? ximfect has an <a href="https://youtu.be/PGSvlpF07tU">official theme song</a>!
 
 Need help? Join the official <a href="https://discord.gg/AGPZyUE">Discord server</a>!
