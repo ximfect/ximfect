@@ -2,77 +2,47 @@ package effect
 
 import (
 	"fmt"
-	"strings"
-	"ximfect/cfg"
+	"os"
 	"ximfect/environ"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Load loads an Effect from the given directory with the given id.
 func Load(path, id string) (*Effect, error) {
 	dir := environ.Combine(path, id)
-	metaPath := environ.Combine(dir, "effect.meta")
+	metaPath := environ.Combine(dir, "effect.yml")
 	scriptPath := environ.Combine(dir, "effect.js")
 
 	var (
-		err        error
-		metaSource string
-		metaParsed cfg.Config
-		script     string
-		meta       *Metadata
-		fx         *Effect
+		err         error
+		metaSource  *os.File
+		metaDecoder *yaml.Decoder
+		script      string
+		meta        *Metadata
 	)
 
-	metaSource, err = environ.LoadTextfile(metaPath)
+	// Create empty *Metadata
+	meta = new(Metadata)
+	// Open meta file
+	metaSource, err = os.Open(metaPath)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading metadata: %v", err)
 	}
+	// Load script file
 	script, err = environ.LoadTextfile(scriptPath)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading script: %v", err)
 	}
-
-	metaParsed = cfg.Parse(metaSource)
-
-	var (
-		name       string
-		version    string
-		author     string
-		desc       string
-		preloadRaw string
-		preload    []string
-		ok         bool
-	)
-
-	name, ok = metaParsed["name"]
-	if !ok {
-		return nil, fmt.Errorf(
-			"error while applying metadata: could not find required field `name`")
-	}
-	version, ok = metaParsed["version"]
-	if !ok {
-		return nil, fmt.Errorf(
-			"error while applying metadata: could not find required field `version`")
-	}
-	author, ok = metaParsed["author"]
-	if !ok {
-		return nil, fmt.Errorf(
-			"error while applying metadata: could not find required field `author`")
-	}
-	desc, ok = metaParsed["desc"]
-	if !ok {
-		return nil, fmt.Errorf(
-			"error while applying metadata: could not find required field `desc`")
-	}
-	preloadRaw, ok = metaParsed["preload"]
-	if ok {
-		preload = strings.Split(preloadRaw, " ")[1:]
-	} else {
-		preload = []string{}
+	// Create meta decoder & read meta
+	metaDecoder = yaml.NewDecoder(metaSource)
+	err = metaDecoder.Decode(meta)
+	if err != nil {
+		return nil, fmt.Errorf("error while reading metadata: %v", err)
 	}
 
-	meta = &(Metadata{name, version, id, author, desc, preload})
-	fx = NewEffect(meta, script)
-	return fx, nil
+	// Return loaded effect
+	return NewEffect(meta, script), nil
 }
 
 // LoadFromAppdata does what Load does, but path is always APPDATA
