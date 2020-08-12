@@ -4,8 +4,10 @@
 
 *Did you know? ximfect has an [official theme song](https://youtu.be/PGSvlpF07tU)!*
 
-# Need help?
-[Join the official Discord server!](https://discord.gg/AGPZyUE)
+*Need help? Join the official [Discord server](https://discord.gg/AGPZyUE)*!
+
+# note
+the below instructions are for the latest development version.
 
 # Usage
 `ximfect (action) <--namedArgument value --otherArgument other value ...>`
