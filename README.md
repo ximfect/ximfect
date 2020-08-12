@@ -1,5 +1,5 @@
 <h1><img src="img/ximfect.png" alt="ximfect logo" width="32px" height="32px">&nbsp;ximfect</h1>
-An effect-based image processing tool.
+An effect-based image processing tool.<br />
 
 
 <i>
