@@ -18,12 +18,12 @@ func Load(path, id string) (*Effect, error) {
 		err         error
 		metaSource  *os.File
 		metaDecoder *yaml.Decoder
+		meta        *Metadata = new(Metadata)
 		script      string
-		meta        *Metadata
 	)
 
-	// Create empty *Metadata
-	meta = new(Metadata)
+	// Populate ID as it's not present in effect.yml
+	meta.ID = id
 	// Open meta file
 	metaSource, err = os.Open(metaPath)
 	if err != nil {
