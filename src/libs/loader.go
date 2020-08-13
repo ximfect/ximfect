@@ -25,6 +25,8 @@ func Load(path, id string) (*Lib, error) {
 		fileName      string
 	)
 
+	// Populate ID as it's not present in effect.yml
+	meta.ID = id
 	// Open metadata file
 	metaSource, err = os.Open(metaPath)
 	if err != nil {
