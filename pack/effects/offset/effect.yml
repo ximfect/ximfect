@@ -1,0 +1,6 @@
+name: Offset
+version: 1.0.1
+author: qeaml <qeaml@pm.me>
+desc: Offset the image by 1/4 it's vertical/horizontal size.
+preload:
+  - setsize.js

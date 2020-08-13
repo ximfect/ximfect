@@ -1,5 +1,0 @@
-Name = Offset
-Version = 1.0.0
-Author = qeaml <qeaml@pm.me>
-Desc = Offset the image by 1/4 it's vertical/horizontal size.
-Preload = setsize.js

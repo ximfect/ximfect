@@ -5,36 +5,46 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"ximfect/cfg"
 	"ximfect/environ"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Load loads a Lib from the given directory with the given id.
 func Load(path, id string) (*Lib, error) {
 	dir := environ.Combine(path, id)
-	metaPath := environ.Combine(dir, "lib.meta")
+	metaPath := environ.Combine(dir, "lib.yml")
 
 	var (
 		err           error
-		metaSource    string
-		metaParsed    cfg.Config
-		meta          *Metadata
+		metaSource    *os.File
+		metaDecoder   *yaml.Decoder
+		meta          *Metadata = new(Metadata)
 		filesAll      []os.FileInfo
 		filesFiltered []string = []string{}
 		fileName      string
 	)
 
-	metaSource, err = environ.LoadTextfile(metaPath)
+	// Populate ID as it's not present in effect.yml
+	meta.ID = id
+	// Open metadata file
+	metaSource, err = os.Open(metaPath)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading metadata: %v", err)
 	}
-	metaParsed = cfg.Parse(metaSource)
-
+	// Create decoder & read meta
+	metaDecoder = yaml.NewDecoder(metaSource)
+	err = metaDecoder.Decode(meta)
+	if err != nil {
+		return nil, fmt.Errorf("erro while reding metadata: %v", err)
+	}
+	// Get list of all files in lib's folder
 	filesAll, err = ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("error while discovering library files: %v",
 			err)
 	}
+	// Filter files to only javascript
 	for _, file := range filesAll {
 		fileName = file.Name()
 		if strings.HasSuffix(fileName, ".js") {
@@ -42,36 +52,6 @@ func Load(path, id string) (*Lib, error) {
 		}
 	}
 
-	var (
-		name    string
-		version string
-		author  string
-		desc    string
-		ok      bool
-	)
-
-	name, ok = metaParsed["name"]
-	if !ok {
-		return nil, fmt.Errorf(
-			"error while applying metadata: could not find required field `name`")
-	}
-	version, ok = metaParsed["version"]
-	if !ok {
-		return nil, fmt.Errorf(
-			"error while applying metadata: could not find required field `version`")
-	}
-	author, ok = metaParsed["author"]
-	if !ok {
-		return nil, fmt.Errorf(
-			"error while applying metadata: could not find required field `author`")
-	}
-	desc, ok = metaParsed["desc"]
-	if !ok {
-		return nil, fmt.Errorf(
-			"error while applying metadata: could not find required field `desc`")
-	}
-
-	meta = &(Metadata{name, version, id, author, desc})
 	return NewLib(meta, filesFiltered, dir), nil
 }
 
