@@ -1,3 +1,5 @@
+/* effect loading */
+
 package effect
 
 import (

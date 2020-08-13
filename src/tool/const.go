@@ -1,3 +1,5 @@
+/* generic CLI constants */
+
 package tool
 
 const (

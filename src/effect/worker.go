@@ -1,5 +1,7 @@
 // +build ignore
 
+/* effect worker */
+
 package effect
 
 import (

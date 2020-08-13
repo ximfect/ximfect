@@ -1,3 +1,5 @@
+/* generic utilities */
+
 package environ
 
 import (

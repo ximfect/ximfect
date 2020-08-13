@@ -1,3 +1,5 @@
+/* path utilities */
+
 package environ
 
 import (

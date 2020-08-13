@@ -1,3 +1,5 @@
+/* ximfect Command Line Interface */
+
 package main
 
 import (

@@ -1,3 +1,5 @@
+/* zipfile utilities */
+
 package environ
 
 import (

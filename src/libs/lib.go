@@ -1,3 +1,5 @@
+/* lib definitions */
+
 package libs
 
 // Metadata holds additional information about a Lib

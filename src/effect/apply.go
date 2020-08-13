@@ -1,3 +1,5 @@
+/* apllying effects onto images */
+
 package effect
 
 import (

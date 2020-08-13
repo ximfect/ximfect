@@ -1,3 +1,5 @@
+/* os.Args parsing */
+
 package tool
 
 import (

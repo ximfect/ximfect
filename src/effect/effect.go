@@ -1,3 +1,5 @@
+/* effect definitions */
+
 package effect
 
 import (
