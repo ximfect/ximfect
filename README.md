@@ -45,22 +45,30 @@ You can install effects from `.zip` files using the `unpack` action.
 # How to create effects
 Effects are recognized by their id, which is the name of the folder containing their files.
 
-The brains of the effect is the `effect.js` file, which is structured like this:
+The `effect.js` file contains the effect's main code. The effect's entry point is the `effect` function, which is called for every pixel in the image. The output of the function is taken as the new colour of the pixel.
+
+Here's an example Black & White effect:
+
 ```js
 function effect(x, y, pixel) { // the effect's function, called on every pixel.
     /*
         `x` and `y` are coordinates of the currently processed picture. always 
         above 0 and below ImageSize()
 
-        `pixel` is an object which contains the `r`,`g`,`b`,`a` valuse of the 
+        `pixel` is an object which contains the `r`,`g`,`b`,`a` values of the 
         pixel. This same structure is returned by ImageAt(x, y) and must be 
-        returned by this function.
+        returned by this function. These values range from 0 to 255 (inclusive)
     */
-   return {r: pixel.r, g: pixel.g, b: pixel.b, a: pixel.a};
+   // calculate average value
+   var avg = (pixel.r + pixel.g + pixel.b) / 3;
+   // return average values as r,g,b, but leave a unchanged
+   return {r: avg, g: avg, b: avg, a: pixel.a};
 }
 ```
 
-And what describes the effect is the `effect.yml` file, which contains various metadata about the effect, structured like this:
+The `effect.yml` describes the effect with various metadata.
+
+Here's an `effect.yml` for the above B&W effect:
 
 ```yaml
 name: My cool effect
