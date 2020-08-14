@@ -8,9 +8,6 @@ Did you know? ximfect has an <a href="https://youtu.be/PGSvlpF07tU">official the
 Need help? Join the official <a href="https://discord.gg/AGPZyUE">Discord server</a>!
 </i>
 
-# note
-the below instructions are for the latest development version.
-
 # Usage
 `ximfect (action) <--namedArgument value --otherArgument other value ...>`
 
