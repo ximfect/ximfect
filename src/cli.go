@@ -29,7 +29,7 @@ func main() {
 
 	if _, silent := args.NamedArgs["silent"]; !silent {
 		fmt.Println("ximfect v" + tool.Version)
-		fmt.Println("Learn more at https://github.com/QeaML/ximfect")
+		fmt.Println("Learn more at https://github.com/qeamlgit/ximfect")
 		fmt.Println("")
 	}
 
