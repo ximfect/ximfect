@@ -60,16 +60,30 @@ function effect(x, y, pixel) { // the effect's function, called on every pixel.
 }
 ```
 
-And what describes the effect is the `effect.meta` file, which contains various metadata about the effect, structured like this:
+And what describes the effect is the `effect.yml` file, which contains various metadata about the effect, structured like this:
+
+```yaml
+name: My cool effect
+version: 1.0.0
+author: Example Guy <me@exampleguy.com>
+desc: This is my very own cool effect!!!
 ```
-# display(!) name of the effect
-Name = nothing
-# semantic version
-Version = 1.0.1
-# the author's name and email
-Author = qeaml <qeaml@pm.me>
-# a short description
-Desc = Does literally nothing.
+
+Where:
+* `name` is the DISPLAY name;
+* `version` is the semantic version;
+* `auhtor` is your name and e-mail;
+* `desc` is a description of the effect;
+
+You can also add other JavaScript files which will be executed before the effect is ran, using the `preload` field:
+
+```yaml
+preload:
+    - utils.js
+    - precalc.js
+    - constants.js
 ```
+
+These files must be placed in the same directory as the `effect.js` and `effect.yml` files.
 
 You can distribute the effect you made with `ximfect pack`. Simply running `ximfect pack --effect (your effect's id)` will make ximfect drop a `.zip` file in the folder you ran it, which contains the effect in a distributable form. Above is a tutorial on installing effects.
