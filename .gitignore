@@ -1,4 +1,5 @@
 pack/release/*
+ximfect*
 *.exe
 *.zip
 *.png
