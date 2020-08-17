@@ -72,7 +72,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 	if err != nil {
 		return fmt.Errorf("error while loading effect: %v", err)
 	}
-	fmt.Println("Applying effect...")
+	fmt.Println("- Working...")
 	for y := 0; y < size.Y; y++ {
 		for x := 0; x < size.X; x++ {
 			red32, green32, blue32, alpha32 = img.At(x, y).RGBA()
@@ -129,7 +129,7 @@ func (e *Effect) Run(vm *otto.Otto, img *image.RGBA) error {
 			img.SetRGBA(x, y, color.RGBA{red8, green8, blue8, alpha8})
 		}
 	}
-	fmt.Println("Finished!")
+	fmt.Println("- Finished!")
 	return nil
 }
 
