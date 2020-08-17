@@ -11,7 +11,9 @@ Need help? Join the official <a href="https://discord.gg/AGPZyUE">Discord server
 # Usage
 `ximfect (action) <--namedArgument value --otherArgument other value ...>`
 
-You can install effects from `.zip` files using the `unpack` action.
+You can see a list of all actions by running `ximfect help` or just `ximfect` by itself.
+
+Dragging & dropping a `.zip` file on the ximfect executable will unpack & install the effect(s) from the file.
 
 # How to install
 
