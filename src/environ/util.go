@@ -3,7 +3,12 @@
 package environ
 
 import (
+	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"os"
+	"strings"
 )
 
 // PrepareAppdata creates an APPDATA/ximfect folder and it's structure if it doesn't exist
@@ -38,4 +43,39 @@ func LoadTextfile(path string) (string, error) {
 	}
 
 	return out, nil
+}
+
+// SaveImage saves the given image
+func SaveImage(filename string, img *image.RGBA) error {
+	var format string
+	if strings.Contains(filename, ".") {
+		split := strings.Split(filename, ".")
+		format = split[len(split)-1]
+	} else {
+		filename += ".png"
+		format = "png"
+	}
+
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	switch format {
+	case "png":
+		err = png.Encode(file, img)
+		if err != nil {
+			return err
+		}
+	case "jpeg":
+		err = jpeg.Encode(file, img, nil)
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unsupported format: %s", format)
+	}
+
+	return nil
 }

@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
+	_ "image/jpeg"
+	_ "image/png"
 	"os"
 	"strings"
 	"ximfect/effect"
@@ -45,19 +46,19 @@ func _apply(t *tool.Tool, a tool.ArgumentList) error {
 	inFileName := file.Value
 	outFileName := out.Value
 
-	t.VerboseLn("[1/6] Loading effect:", effName)
+	t.VerboseLn("[1/5] Loading effect:", effName)
 	fx, err := effect.LoadFromAppdata(effName)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("[2/6] Opening file:", inFileName)
+	t.VerboseLn("[2/5] Opening file:", inFileName)
 	inFile, err := os.Open(inFileName)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("[3/6] Decoding image...")
+	t.VerboseLn("[3/5] Decoding image...")
 	imageRaw, _, err := image.Decode(inFile)
 	if err != nil {
 		return err
@@ -68,20 +69,14 @@ func _apply(t *tool.Tool, a tool.ArgumentList) error {
 			"unsupported pixel format")
 	}
 
-	t.VerboseLn("[4/6] Applying effect...")
+	t.VerboseLn("[4/5] Applying effect...")
 	err = effect.Apply(fx, image)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("[5/6] Opening output file:", outFileName)
-	outFile, err := os.Create(outFileName)
-	if err != nil {
-		return err
-	}
-
-	t.VerboseLn("[6/6] Encoding & writing to file...")
-	err = png.Encode(outFile, image)
+	t.VerboseLn("[5/5] Saving output file:", outFileName)
+	err = environ.SaveImage(outFileName, image)
 	if err != nil {
 		return err
 	}
@@ -195,14 +190,8 @@ func _test(t *tool.Tool, a tool.ArgumentList) error {
 		}
 	}
 
-	t.VerboseLn("Creating output file:", outFileName)
-	outFile, err := os.Create(outFileName)
-	if err != nil {
-		return err
-	}
-
-	t.VerboseLn("Econding & writing to file...")
-	err = png.Encode(outFile, img)
+	t.VerboseLn("Saving output file:", outFileName)
+	err := environ.SaveImage(outFileName, img)
 	if err != nil {
 		return err
 	}
