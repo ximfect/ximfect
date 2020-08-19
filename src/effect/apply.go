@@ -4,15 +4,15 @@ package effect
 
 import (
 	"fmt"
-	"image"
 	"ximfect/libs"
 
 	"github.com/robertkrimen/otto"
+	"github.com/ximfect/ximgy"
 )
 
 // PrepareVM adds all the API functions to a VM.
-func PrepareVM(vm *otto.Otto, img *image.RGBA) error {
-	size := img.Bounds().Size()
+func PrepareVM(vm *otto.Otto, img *ximgy.Image) error {
+	size := img.Size
 	var err error
 	err = vm.Set("Require", func(call otto.FunctionCall) otto.Value {
 		libName, err := call.Argument(0).ToString()
@@ -63,7 +63,7 @@ func PrepareVM(vm *otto.Otto, img *image.RGBA) error {
 		}
 		x := int(x64)
 		y := int(y64)
-		size := img.Bounds().Size()
+		size := img.Size
 		if (x < 0 || y < 0) || (x >= size.X || y >= size.Y) {
 			return obj
 		}
@@ -82,17 +82,16 @@ func PrepareVM(vm *otto.Otto, img *image.RGBA) error {
 }
 
 // Apply runs the given Effect on the given Image with an empty VM.
-func Apply(fx *Effect, img *image.RGBA) error {
+func Apply(fx *Effect, img *ximgy.Image) {
 	vm := otto.New()
-	err := PrepareVM(vm, img)
-	if err != nil {
-		return err
-	}
-	return fx.Run(vm, img)
+	PrepareVM(vm, img)
+	fx.Load(vm)
+	img.Iterate(fx.Run)
 }
 
 // ApplyOn does what Apply does but on an existing VM.
 // This assumes that the VM has been prepared already.
-func ApplyOn(vm *otto.Otto, fx *Effect, img *image.RGBA) error {
-	return fx.Run(vm, img)
+func ApplyOn(vm *otto.Otto, fx *Effect, img *ximgy.Image) {
+	fx.Load(vm)
+	img.Iterate(fx.Run)
 }

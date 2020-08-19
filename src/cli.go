@@ -12,6 +12,8 @@ import (
 	"ximfect/effect"
 	"ximfect/environ"
 	"ximfect/tool"
+
+	"github.com/ximfect/ximgy"
 )
 
 var gTool *tool.Tool = tool.NewTool(
@@ -46,37 +48,23 @@ func _apply(t *tool.Tool, a tool.ArgumentList) error {
 	inFileName := file.Value
 	outFileName := out.Value
 
-	t.VerboseLn("[1/5] Loading effect:", effName)
+	t.VerboseLn("[1/4] Loading effect:", effName)
 	fx, err := effect.LoadFromAppdata(effName)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("[2/5] Opening file:", inFileName)
-	inFile, err := os.Open(inFileName)
+	t.VerboseLn("[2/4] Opening file:", inFileName)
+	inFile, err := ximgy.Open(inFileName)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("[3/5] Decoding image...")
-	imageRaw, _, err := image.Decode(inFile)
-	if err != nil {
-		return err
-	}
-	image, ok := imageRaw.(*image.RGBA)
-	if !ok {
-		return errors.New(
-			"unsupported pixel format")
-	}
+	t.VerboseLn("[3/4] Applying effect...")
+	effect.Apply(fx, inFile)
 
-	t.VerboseLn("[4/5] Applying effect...")
-	err = effect.Apply(fx, image)
-	if err != nil {
-		return err
-	}
-
-	t.VerboseLn("[5/5] Saving output file:", outFileName)
-	err = environ.SaveImage(outFileName, image)
+	t.VerboseLn("[4/4] Saving output file:", outFileName)
+	err = ximgy.Save(inFile, outFileName)
 	if err != nil {
 		return err
 	}
@@ -168,6 +156,10 @@ func _unpack(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
+func _testIter(pixel ximgy.Pixel) color.RGBA {
+	return color.RGBA{uint8(pixel.X/2 + 1), uint8(pixel.Y/2 + 1), 0, 255}
+}
+
 func _test(t *tool.Tool, a tool.ArgumentList) error {
 	out, hasOut := a.NamedArgs["out"]
 
@@ -179,19 +171,11 @@ func _test(t *tool.Tool, a tool.ArgumentList) error {
 	outFileName := out.Value
 
 	t.VerboseLn("Generating test image...")
-	img := image.NewRGBA(image.Rect(0, 0, 510, 510))
-	var (
-		x int
-		y int
-	)
-	for y = 0; y < 510; y++ {
-		for x = 0; x < 510; x++ {
-			img.SetRGBA(x, y, color.RGBA{uint8(x/2 + 1), uint8(y/2 + 1), 0, 255})
-		}
-	}
+	img := ximgy.MakeEmpty(image.Rect(0, 0, 512, 512))
+	img.Iterate(_testIter)
 
 	t.VerboseLn("Saving output file:", outFileName)
-	err := environ.SaveImage(outFileName, img)
+	err := ximgy.Save(img, outFileName)
 	if err != nil {
 		return err
 	}
