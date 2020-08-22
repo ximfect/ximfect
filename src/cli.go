@@ -156,10 +156,6 @@ func _unpack(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
-func _testIter(pixel ximgy.Pixel) color.RGBA {
-	return color.RGBA{uint8(pixel.X/2 + 1), uint8(pixel.Y/2 + 1), 0, 255}
-}
-
 func _test(t *tool.Tool, a tool.ArgumentList) error {
 	out, hasOut := a.NamedArgs["out"]
 
@@ -171,8 +167,12 @@ func _test(t *tool.Tool, a tool.ArgumentList) error {
 	outFileName := out.Value
 
 	t.VerboseLn("Generating test image...")
-	img := ximgy.MakeEmpty(image.Rect(0, 0, 512, 512))
-	img.Iterate(_testIter)
+	amt := 1024
+	img := ximgy.MakeEmpty(image.Rect(0, 0, amt, amt))
+	step := amt / 256
+	img.Iterate(func(pixel ximgy.Pixel) color.RGBA {
+		return color.RGBA{uint8(pixel.X / step), uint8(pixel.Y / step), 0, 255}
+	})
 
 	t.VerboseLn("Saving output file:", outFileName)
 	err := ximgy.Save(img, outFileName)
