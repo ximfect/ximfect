@@ -67,7 +67,10 @@ func _apply(t *tool.Tool, a tool.ArgumentList) error {
 	}
 
 	t.VerboseLn("Applying effect...")
-	effect.Apply(fx, inFile, t, a)
+	err = effect.Apply(fx, inFile, t, a)
+	if err != nil {
+		return err
+	}
 
 	t.VerboseLn("Saving output file:", outFileName)
 	err = ximgy.Save(inFile, outFileName)

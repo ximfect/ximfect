@@ -100,17 +100,10 @@ func PrepareVM(vm *otto.Otto, img *ximgy.Image, args tool.ArgumentList) error {
 }
 
 // Apply runs the given Effect on the given Image with an empty VM.
-func Apply(fx *Effect, img *ximgy.Image, tool *tool.Tool, args tool.ArgumentList) {
+func Apply(fx *Effect, img *ximgy.Image, tool *tool.Tool, args tool.ArgumentList) error {
 	vm := otto.New()
 	PrepareVM(vm, img, args)
 	fx.Load(vm)
 	tool.VerboseLn("Working...")
-	img.Iterate(fx.Run)
-}
-
-// ApplyOn does what Apply does but on an existing VM.
-// This assumes that the VM has been prepared already.
-func ApplyOn(vm *otto.Otto, fx *Effect, img *ximgy.Image) {
-	fx.Load(vm)
-	img.Iterate(fx.Run)
+	return img.Iterate(fx.Run)
 }

@@ -3,6 +3,7 @@
 package effect
 
 import (
+	"errors"
 	"fmt"
 	"image/color"
 	"os"
@@ -64,7 +65,7 @@ func (e *Effect) Load(vm *otto.Otto) error {
 }
 
 // Run processes the given image on the given VM
-func (e *Effect) Run(pixel ximgy.Pixel) color.RGBA {
+func (e *Effect) Run(pixel ximgy.Pixel) (color.RGBA, error) {
 	def := color.RGBA{0, 0, 0, 0}
 	var (
 		ret otto.Value
@@ -76,49 +77,49 @@ func (e *Effect) Run(pixel ximgy.Pixel) color.RGBA {
 		pixel.X, pixel.Y, pixel.R, pixel.G, pixel.B, pixel.A)
 	ret, err = e.vm.Run(code)
 	if err != nil {
-		return def
+		return def, err
 	}
 	if !ret.IsObject() {
-		return def
+		return def, errors.New("return value os nmot an object")
 	}
 	obj = ret.Object()
 	ret, err = obj.Get("r")
 	if err != nil {
-		return def
+		return def, err
 	}
 	tmp, err = ret.ToInteger()
 	if err != nil {
-		return def
+		return def, err
 	}
 	red8 := uint8(tmp)
 	ret, err = obj.Get("g")
 	if err != nil {
-		return def
+		return def, err
 	}
 	tmp, err = ret.ToInteger()
 	if err != nil {
-		return def
+		return def, err
 	}
 	green8 := uint8(tmp)
 	ret, err = obj.Get("b")
 	if err != nil {
-		return def
+		return def, err
 	}
 	tmp, err = ret.ToInteger()
 	if err != nil {
-		return def
+		return def, err
 	}
 	blue8 := uint8(tmp)
 	ret, err = obj.Get("a")
 	if err != nil {
-		return def
+		return def, err
 	}
 	tmp, err = ret.ToInteger()
 	if err != nil {
-		return def
+		return def, err
 	}
 	alpha8 := uint8(tmp)
-	return color.RGBA{red8, green8, blue8, alpha8}
+	return color.RGBA{red8, green8, blue8, alpha8}, nil
 }
 
 // SetSource sets the source for the effect
