@@ -179,8 +179,8 @@ func _test(t *tool.Tool, a tool.ArgumentList) error {
 	amt := 1024
 	img := ximgy.MakeEmpty(image.Rect(0, 0, amt, amt))
 	step := amt / 256
-	img.Iterate(func(pixel ximgy.Pixel) color.RGBA {
-		return color.RGBA{uint8(pixel.X / step), uint8(pixel.Y / step), 0, 255}
+	img.Iterate(func(pixel ximgy.Pixel) (color.RGBA, error) {
+		return color.RGBA{uint8(pixel.X / step), uint8(pixel.Y / step), 0, 255}, nil
 	})
 
 	t.VerboseLn("Saving output file:", outFileName)
