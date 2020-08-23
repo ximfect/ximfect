@@ -16,6 +16,12 @@ import (
 	"github.com/ximfect/ximgy"
 )
 
+const (
+	scriptTemplate string = "function effect(x, y, pixel) {\n	// write your code here\n	return {r: pixel.r, g: pixel.g, b: pixel.b, a: pixel.a};\n}\n"
+
+	metaTemplate string = "name: Empty Effect\nversion: 1.0.0\nauthor: unknown <>\ndesc: ximfect generated empty effect\n"
+)
+
 var gTool *tool.Tool = tool.NewTool(
 	"ximfect",
 	"0.2.0",
@@ -48,22 +54,22 @@ func _apply(t *tool.Tool, a tool.ArgumentList) error {
 	inFileName := file.Value
 	outFileName := out.Value
 
-	t.VerboseLn("[1/4] Loading effect:", effName)
+	t.VerboseLn("Loading effect:", effName)
 	fx, err := effect.LoadFromAppdata(effName)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("[2/4] Opening file:", inFileName)
+	t.VerboseLn("Opening file:", inFileName)
 	inFile, err := ximgy.Open(inFileName)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("[3/4] Applying effect...")
-	effect.Apply(fx, inFile)
+	t.VerboseLn("Applying effect...")
+	effect.Apply(fx, inFile, t, a)
 
-	t.VerboseLn("[4/4] Saving output file:", outFileName)
+	t.VerboseLn("Saving output file:", outFileName)
 	err = ximgy.Save(inFile, outFileName)
 	if err != nil {
 		return err
@@ -184,6 +190,44 @@ func _test(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
+func _fxInit(t *tool.Tool, a tool.ArgumentList) error {
+	eff, hasEff := a.NamedArgs["effect"]
+
+	if !hasEff {
+		return errors.New(
+			"missing effect argument, specify with --effect <id>")
+	}
+
+	effName := strings.ToLower(eff.Value)
+
+	t.VerboseLn("Creating effect structure")
+	err := os.Mkdir(environ.AppdataPath("effects", effName), os.ModePerm)
+	if err != nil {
+		return err
+	}
+	script, err := os.Create(environ.AppdataPath("effects", effName, "effect.js"))
+	if err != nil {
+		return err
+	}
+	meta, err := os.Create(environ.AppdataPath("effects", effName, "effect.yml"))
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Writing file templates...")
+	_, err = script.WriteString(scriptTemplate)
+	if err != nil {
+		return err
+	}
+	_, err = meta.WriteString(metaTemplate)
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Finished! View your effect in:", environ.AppdataPath("effects", effName))
+	return nil
+}
+
 func main() {
 	gTool.Init()
 	gTool.AddAction("version", _version, "Shows the version")
@@ -192,6 +236,7 @@ func main() {
 	gTool.AddAction("pack", _pack, "Packs an effect into a zip archive")
 	gTool.AddAction("unpack", _unpack, "Unpacks and installs an effect")
 	gTool.AddAction("test", _test, "Generates a test image")
+	gTool.AddAction("fxInit", _fxInit, "Generates an effect template")
 
 	var err error
 
