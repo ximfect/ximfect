@@ -5,13 +5,14 @@ package effect
 import (
 	"fmt"
 	"ximfect/libs"
+	"ximfect/tool"
 
 	"github.com/robertkrimen/otto"
 	"github.com/ximfect/ximgy"
 )
 
 // PrepareVM adds all the API functions to a VM.
-func PrepareVM(vm *otto.Otto, img *ximgy.Image) error {
+func PrepareVM(vm *otto.Otto, img *ximgy.Image, args tool.ArgumentList) error {
 	size := img.Size
 	var err error
 	err = vm.Set("Require", func(call otto.FunctionCall) otto.Value {
@@ -78,14 +79,32 @@ func PrepareVM(vm *otto.Otto, img *ximgy.Image) error {
 	if err != nil {
 		return err
 	}
+	err = vm.Set("FxArg", func(call otto.FunctionCall) otto.Value {
+		argName, err := call.Argument(0).ToString()
+		if err != nil {
+			n, _ := vm.ToValue(nil)
+			return n
+		}
+		argValue, ok := args.NamedArgs[argName]
+		if !ok {
+			n, _ := vm.ToValue(nil)
+			return n
+		}
+		val, _ := vm.ToValue(argValue.Value)
+		return val
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // Apply runs the given Effect on the given Image with an empty VM.
-func Apply(fx *Effect, img *ximgy.Image) {
+func Apply(fx *Effect, img *ximgy.Image, tool *tool.Tool, args tool.ArgumentList) {
 	vm := otto.New()
-	PrepareVM(vm, img)
+	PrepareVM(vm, img, args)
 	fx.Load(vm)
+	tool.VerboseLn("Working...")
 	img.Iterate(fx.Run)
 }
 
