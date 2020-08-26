@@ -4,6 +4,7 @@ package effect
 
 import (
 	"fmt"
+	"strings"
 	"ximfect/libs"
 	"ximfect/tool"
 
@@ -79,20 +80,19 @@ func PrepareVM(vm *otto.Otto, img *ximgy.Image, args tool.ArgumentList) error {
 	if err != nil {
 		return err
 	}
-	err = vm.Set("FxArg", func(call otto.FunctionCall) otto.Value {
-		argName, err := call.Argument(0).ToString()
-		if err != nil {
-			n, _ := vm.ToValue(nil)
-			return n
+	m := make(map[string]string)
+	for name, v := range args.NamedArgs {
+		n := strings.ToLower(name)
+		if strings.HasPrefix(n, "fx-") {
+			if v.IsValue {
+				m[name[3:]] = v.Value
+			} else {
+				m[n] = ""
+			}
 		}
-		argValue, ok := args.NamedArgs[argName]
-		if !ok {
-			n, _ := vm.ToValue(nil)
-			return n
-		}
-		val, _ := vm.ToValue(argValue.Value)
-		return val
-	})
+	}
+	val, _ := vm.ToValue(m)
+	err = vm.Set("Arguments", val)
 	if err != nil {
 		return err
 	}
@@ -104,6 +104,6 @@ func Apply(fx *Effect, img *ximgy.Image, tool *tool.Tool, args tool.ArgumentList
 	vm := otto.New()
 	PrepareVM(vm, img, args)
 	fx.Load(vm)
-	tool.VerboseLn("Working...")
+	tool.VerboseLn("- Working...")
 	return img.Iterate(fx.Run)
 }

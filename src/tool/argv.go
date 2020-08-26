@@ -28,6 +28,7 @@ type ArgumentList struct {
 // GetArgv reads os.Args and turns it into an ArgMap.
 func GetArgv(src []string) ArgumentList {
 	src = src[1:]
+	src = append(src, "--")
 	// Get positional arguments
 	posArgs := []Argument{}
 	var namedArgsStart int
@@ -41,31 +42,45 @@ func GetArgv(src []string) ArgumentList {
 	// Get named arguments
 	namedArgs := make(ArgMap)
 	var (
-		last    string
-		hasLast bool = false
-		arg     string
+		name     string
+		hasName  bool
+		valueS   string
+		valueB   bool
+		valueIsB bool
+		hasValue bool
+		arg      string
 	)
 	for i := namedArgsStart; i < len(src); i++ {
 		arg = src[i]
-		if arg = strings.TrimSpace(arg); arg == "" {
-			continue
-		}
-		if strings.HasPrefix(arg, "--") {
-			arg = arg[1:]
-			if hasLast {
-				if strings.HasPrefix(last, "!") {
-					namedArgs[last[1:]] = Argument{false, "", false}
-				} else {
-					namedArgs[last] = Argument{false, "", true}
+		if !hasValue {
+			if strings.HasPrefix(arg, "--") {
+				if hasName {
+					hasValue = true
+					valueIsB = true
+					valueB = !strings.HasPrefix(name, "!")
+					if !valueB {
+						name = name[1:]
+					}
+				} else if !hasName {
+					hasName = true
+					name = strings.ToLower(arg[2:])
 				}
-				hasLast = false
 			} else {
-				last = arg[1:]
-				hasLast = true
+				if hasName {
+					hasValue = true
+					valueS = arg
+				}
 			}
-		} else {
-			namedArgs[last] = Argument{true, arg, true}
-			hasLast = false
+		}
+		if hasName && hasValue {
+			hasName = false
+			hasValue = false
+			if valueIsB {
+				namedArgs[name] = Argument{false, "", valueB}
+				i--
+			} else {
+				namedArgs[name] = Argument{true, valueS, true}
+			}
 		}
 	}
 	// Combine and return

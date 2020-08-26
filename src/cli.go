@@ -11,6 +11,7 @@ import (
 	"strings"
 	"ximfect/effect"
 	"ximfect/environ"
+	"ximfect/libs"
 	"ximfect/tool"
 
 	"github.com/ximfect/ximgy"
@@ -25,7 +26,7 @@ const (
 var gTool *tool.Tool = tool.NewTool(
 	"ximfect",
 	"0.2.0",
-	"Learn more at https://github.com/qeamlgit/ximfect")
+	"Learn more at https://ximfect.github.io")
 
 func _version(t *tool.Tool, a tool.ArgumentList) error {
 	fmt.Println(t.GetVersion())
@@ -66,7 +67,7 @@ func _apply(t *tool.Tool, a tool.ArgumentList) error {
 		return err
 	}
 
-	t.VerboseLn("Applying effect...")
+	t.VerboseLn("Applying effect:")
 	err = effect.Apply(fx, inFile, t, a)
 	if err != nil {
 		return err
@@ -84,29 +85,48 @@ func _apply(t *tool.Tool, a tool.ArgumentList) error {
 
 func _about(t *tool.Tool, a tool.ArgumentList) error {
 	eff, hasEff := a.NamedArgs["effect"]
+	lib, hasLib := a.NamedArgs["lib"]
 
-	if !hasEff {
+	if !(hasEff || hasLib) {
 		return errors.New(
-			"missing effect argument, specify with --effect <id>")
+			"what should be described? use --effect <id> or --lib <id>")
 	}
 
 	effName := strings.ToLower(eff.Value)
+	libName := strings.ToLower(lib.Value)
 
-	t.VerboseLn("Loading effect:", effName)
-	fx, err := effect.LoadFromAppdata(effName)
-	if err != nil {
-		return err
-	}
+	if hasEff {
+		t.VerboseLn("Loading effect:", effName)
+		fx, err := effect.LoadFromAppdata(effName)
+		if err != nil {
+			return err
+		}
 
-	meta := fx.Metadata
+		meta := fx.Metadata
 
-	fmt.Printf("======== About %s ========\n", effName)
-	fmt.Printf("Name:           %s\n", meta.Name)
-	fmt.Printf("Version:        %s\n", meta.Version)
-	fmt.Printf("Author:         %s\n", meta.Author)
-	fmt.Printf("Description:    %s\n", meta.Desc)
-	if len(meta.Preload) > 0 {
-		fmt.Printf("Preload:         %v\n", strings.Join(meta.Preload, ", "))
+		fmt.Printf("======== About %s ========\n", effName)
+		fmt.Printf("Name:           %s\n", meta.Name)
+		fmt.Printf("Version:        %s\n", meta.Version)
+		fmt.Printf("Author:         %s\n", meta.Author)
+		fmt.Printf("Description:    %s\n", meta.Desc)
+		if len(meta.Preload) > 0 {
+			fmt.Printf("Preload:         %v\n", strings.Join(meta.Preload, ", "))
+		}
+	} else if hasLib {
+		t.VerboseLn("Loading lib:", libName)
+		library, err := libs.LoadFromAppdata(libName)
+		if err != nil {
+			return err
+		}
+
+		meta := library.Metadata
+
+		fmt.Printf("======== About %s ========\n", libName)
+		fmt.Printf("Name:           %s\n", meta.Name)
+		fmt.Printf("Version:        %s\n", meta.Version)
+		fmt.Printf("Author:         %s\n", meta.Author)
+		fmt.Printf("Description:    %s\n", meta.Desc)
+		fmt.Printf("Files:\n    [%s]\n", strings.Join(library.Files, "; "))
 	}
 
 	return nil
@@ -231,6 +251,12 @@ func _fxInit(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
+func _dev(t *tool.Tool, a tool.ArgumentList) error {
+	fmt.Println(a.NamedArgs)
+	fmt.Println(a.PosArgs)
+	return nil
+}
+
 func main() {
 	gTool.Init()
 	gTool.AddAction("version", _version, "Shows the version")
@@ -240,6 +266,7 @@ func main() {
 	gTool.AddAction("unpack", _unpack, "Unpacks and installs an effect")
 	gTool.AddAction("test", _test, "Generates a test image")
 	gTool.AddAction("fxInit", _fxInit, "Generates an effect template")
+	gTool.AddAction("dev", _dev, "Action for internal testing")
 
 	var err error
 
