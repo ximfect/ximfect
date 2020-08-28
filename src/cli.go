@@ -11,6 +11,7 @@ import (
 	"strings"
 	"ximfect/effect"
 	"ximfect/environ"
+	"ximfect/fxchain"
 	"ximfect/libs"
 	"ximfect/tool"
 
@@ -252,8 +253,9 @@ func _fxInit(t *tool.Tool, a tool.ArgumentList) error {
 }
 
 func _dev(t *tool.Tool, a tool.ArgumentList) error {
-	fmt.Println(a.NamedArgs)
-	fmt.Println(a.PosArgs)
+	src := "remcolor{color:red,amt:10};remcolor{color:purple,amt:5}"
+	chain := fxchain.ParseChain(src)
+	fmt.Println(chain)
 	return nil
 }
 
