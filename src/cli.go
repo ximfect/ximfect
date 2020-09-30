@@ -186,6 +186,56 @@ func _unpack(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
+func _applyChain(t *tool.Tool, a tool.ArgumentList) error {
+	file, hasFile := a.NamedArgs["file"]
+	out, hasOut := a.NamedArgs["out"]
+	inp, hasInp := a.NamedArgs["img"]
+
+	if !hasFile {
+		return errors.New(
+			"missing input file, specify with --file <filename>")
+	}
+	if !hasOut {
+		return errors.New(
+			"missing output file, specify with --out <filename>")
+	}
+	if !hasInp {
+		return errors.New(
+			"missing input image, specify with --img <filename>")
+	}
+
+	inFileName := file.Value
+	outFileName := out.Value
+	inpFileName := inp.Value
+
+	t.VerboseLn("Loading FX chain: ", inFileName)
+	src, err := environ.LoadTextfile(inFileName)
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Loading image:", inpFileName)
+	img, err := ximgy.Open(inpFileName)
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Applying FX chain...")
+	res, err := fxchain.Apply(src, img, t)
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Saving result:", outFileName)
+	err = ximgy.Save(res, outFileName)
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Finished!")
+	return nil
+}
+
 func _test(t *tool.Tool, a tool.ArgumentList) error {
 	out, hasOut := a.NamedArgs["out"]
 
@@ -253,7 +303,7 @@ func _fxInit(t *tool.Tool, a tool.ArgumentList) error {
 }
 
 func _dev(t *tool.Tool, a tool.ArgumentList) error {
-	src := "remcolor{color:red,amt:10};remcolor{color:purple,amt:5}"
+	src := "remcolor{color:red,amt:10};remcolor{color:purple,amt:5}\npixelshift{}"
 	chain := fxchain.ParseChain(src)
 	fmt.Println(chain)
 	return nil
@@ -266,9 +316,10 @@ func main() {
 	gTool.AddAction("about", _about, "Shows information about and effect")
 	gTool.AddAction("pack", _pack, "Packs an effect into a zip archive")
 	gTool.AddAction("unpack", _unpack, "Unpacks and installs an effect")
-	gTool.AddAction("test", _test, "Generates a test image")
-	gTool.AddAction("fxInit", _fxInit, "Generates an effect template")
+	gTool.AddAction("save-test", _test, "Generates and saves a test image")
+	gTool.AddAction("make-empty", _fxInit, "Generates an effect template")
 	gTool.AddAction("dev", _dev, "Action for internal testing")
+	gTool.AddAction("apply-chain", _applyChain, "Applies an FX chain from a file.")
 
 	var err error
 
@@ -276,6 +327,8 @@ func main() {
 		err = gTool.RunAction([]string{"", "help"})
 	} else if strings.HasSuffix(os.Args[1], ".zip") {
 		err = gTool.RunAction([]string{"", "unpack", "--file", os.Args[1]})
+	} else if strings.HasSuffix(os.Args[1], ".xfc") {
+		err = gTool.RunAction([]string{"", "apply-chain", "--file", os.Args[1]})
 	} else {
 		err = gTool.RunAction(os.Args)
 	}

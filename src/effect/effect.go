@@ -44,7 +44,7 @@ func (e *Effect) Load(vm *otto.Otto) error {
 	e.vm = vm
 	var err error
 	if len(e.Metadata.Preload) > 0 {
-		fmt.Println("Preloading...")
+		fmt.Println("- Preloading...")
 		for _, filename := range e.Metadata.Preload {
 			file, err := os.Open(
 				environ.AppdataPath("effects", e.Metadata.ID, filename))

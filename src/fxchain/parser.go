@@ -10,6 +10,9 @@ type Pair struct {
 	params map[string]string
 }
 
+// Chain is a slice of Pairs
+type Chain []Pair
+
 // GetStmts retrieves statements from a string
 func GetStmts(src string) []string {
 	stmts := []string{}
@@ -127,12 +130,12 @@ func GetStmtValues(stmt string) (string, map[string]string) {
 }
 
 // ParseChain parses source and get effect chain
-func ParseChain(src string) []Pair {
+func ParseChain(src string) Chain {
 	stmts := GetStmts(src)
 	pairs := []Pair{}
 	for _, stmt := range stmts {
 		effect, params := GetStmtValues(stmt)
 		pairs = append(pairs, Pair{effect, params})
 	}
-	return pairs
+	return Chain(pairs)
 }
