@@ -26,7 +26,7 @@ const (
 
 var gTool *tool.Tool = tool.NewTool(
 	"ximfect",
-	"0.2.0",
+	tool.Version,
 	"Learn more at https://ximfect.github.io")
 
 func _version(t *tool.Tool, a tool.ArgumentList) error {
