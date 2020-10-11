@@ -13,14 +13,14 @@ Need help? Join the official <a href="https://discord.gg/AGPZyUE">Discord server
 
 You can see a list of all actions by running `ximfect help` or just `ximfect` by itself.
 
-Dragging & dropping a `.zip` file on the ximfect executable will unpack & install the effect(s) from the file.
+Dragging & dropping a `.xfp` file on the ximfect executable will unpack & install the effect(s) from the file.
 
 # Docs
 Documentation is available [here](https://ximfect.github.io).
 
 # How to install
 
-1. Go to the [Releases](https://github.com/QeaML/ximfect/releases) page.
+1. Go to the [Releases](https://github.com/ximfect/ximfect/releases) page.
 2. Find the release you wish to install.
 3. Download the executable for your OS+architecture combo.
 4. Move your executable to a favorable location. (Windows: `C:\ximfect`, Linux: `/usr/bin`)
@@ -33,16 +33,17 @@ Documentation is available [here](https://ximfect.github.io).
 
 ## Release effects
 
-1. Go to the [Releases](https://github.com/QeaML/ximfect/releases) page.
+1. Go to the [Releases](https://github.com/ximfect/ximfect/releases) page.
 2. Find the release you have installed. (check with `ximfect version`)
 3. Download the `effects.zip` file.
 4. Using your command prompt/terminal, navigate to the folder you downloaded the file.
-5. Run `ximfect unpack --file effects.zip`.
+5. Unzip the file.
+6. For each effect, run `ximfect unpack --file {effect}.xfp`.
 6. **Done!**
 
 ## User-made effects
 
-1. Download the provided `.zip` file of your effect(s).
+1. Download the provided `.xfp` file of your effect.
 2. Using your command prompt/terminal, navigate to the folder you downloaded the file.
-3. Run `ximfect unpack --file (effect(s) .zip file)`.
+3. Run `ximfect unpack --file {effect}.xfp`.
 4. **Done!**
