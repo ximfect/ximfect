@@ -135,32 +135,34 @@ func _about(t *tool.Tool, a tool.ArgumentList) error {
 
 func _pack(t *tool.Tool, a tool.ArgumentList) error {
 	eff, hasEff := a.NamedArgs["effect"]
-	out, hasOut := a.NamedArgs["out"]
 
 	if !hasEff {
 		return errors.New(
 			"missing effect argument, specify with --effect <id>")
 	}
-	if !hasOut {
-		return errors.New(
-			"missing output file, specify with --out <filename>")
-	}
 
 	effName := strings.ToLower(eff.Value)
-	outFileName := out.Value
+	outFileName := effName + ".xfp"
 
 	t.VerboseLn("Loading effect:", effName)
-	_, err := effect.LoadFromAppdata(effName)
+	fx, err := effect.LoadFromAppdata(effName)
 	if err != nil {
 		return fmt.Errorf(
 			"could not find effect: %s", effName)
 	}
 
-	t.VerboseLn("Creating zip archive:", outFileName)
-	err = environ.ZipIt(environ.AppdataPath("effects", effName), outFileName)
+	t.VerboseLn("Packaging effect...")
+	raw, err := effect.Pack(fx)
 	if err != nil {
 		return err
 	}
+
+	t.VerboseLn("Saving to file:", outFileName)
+	file, err := os.Create(outFileName)
+	if err != nil {
+		return err
+	}
+	file.Write(raw)
 
 	t.VerboseLn("Finished!")
 	return nil
@@ -177,7 +179,7 @@ func _unpack(t *tool.Tool, a tool.ArgumentList) error {
 	inFileName := file.Value
 
 	t.VerboseLn("Unpacking file:", inFileName)
-	err := environ.Unzip(inFileName, environ.AppdataPath("effects"))
+	err := effect.Unpack(inFileName)
 	if err != nil {
 		return err
 	}
@@ -303,9 +305,12 @@ func _fxInit(t *tool.Tool, a tool.ArgumentList) error {
 }
 
 func _dev(t *tool.Tool, a tool.ArgumentList) error {
-	src := "remcolor{color:red,amt:10};remcolor{color:purple,amt:5}\npixelshift{}"
-	chain := fxchain.ParseChain(src)
-	fmt.Println(chain)
+	//fx, _ := effect.LoadFromAppdata("noblue")
+	//pk, _ := effect.Pack(fx)
+	//fmt.Println(pk)
+	//fl, _ := os.Create("test.xfp")
+	//fl.Write(pk)
+	effect.Unpack("test.xfp")
 	return nil
 }
 
@@ -325,7 +330,7 @@ func main() {
 
 	if len(os.Args) == 1 {
 		err = gTool.RunAction([]string{"", "help"})
-	} else if strings.HasSuffix(os.Args[1], ".zip") {
+	} else if strings.HasSuffix(os.Args[1], ".xfp") {
 		err = gTool.RunAction([]string{"", "unpack", "--file", os.Args[1]})
 	} else if strings.HasSuffix(os.Args[1], ".xfc") {
 		err = gTool.RunAction([]string{"", "apply-chain", "--file", os.Args[1]})

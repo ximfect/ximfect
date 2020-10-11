@@ -1,0 +1,10 @@
+XFPnoblueÿname: No Blue
+version: 1.0.2
+id: noblue
+author: qeaml <qeaml@pm.me>
+desc: Removes all blue from the image.
+preload: []
+ÿeffect.jsÿfunction effect(x, y, pixel) {
+    return {r: pixel.r, g: pixel.g, b: 0, a: pixel.a};
+}
+ÿ

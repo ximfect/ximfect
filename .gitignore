@@ -7,3 +7,4 @@ ximfect*
 *.jpeg
 go.sum
 !ximfect.png
+.idea/*
