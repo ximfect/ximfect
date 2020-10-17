@@ -13,6 +13,7 @@ import (
 	"ximfect/environ"
 	"ximfect/fxchain"
 	"ximfect/libs"
+	"ximfect/pack"
 	"ximfect/tool"
 
 	"github.com/ximfect/ximgy"
@@ -135,40 +136,76 @@ func _about(t *tool.Tool, a tool.ArgumentList) error {
 
 func _pack(t *tool.Tool, a tool.ArgumentList) error {
 	eff, hasEff := a.NamedArgs["effect"]
+	lib, hasLib := a.NamedArgs["lib"]
 
-	if !hasEff {
+	if !hasEff && !hasLib {
 		return errors.New(
-			"missing effect argument, specify with --effect <id>")
+			"missing input argument, specify with --effect <id> or --lib <id>")
 	}
 
-	effName := strings.ToLower(eff.Value)
-	outFileName := effName + ".xfp"
-
-	t.VerboseLn("Loading effect:", effName)
-	fx, err := effect.LoadFromAppdata(effName)
-	if err != nil {
-		return fmt.Errorf(
-			"could not find effect: %s", effName)
+	if hasEff && hasLib {
+		return errors.New(
+			"too many input arguments, use ONLY --effect or ONLY --lib")
 	}
 
-	t.VerboseLn("Packaging effect...")
-	raw, err := effect.Pack(fx)
-	if err != nil {
-		return err
-	}
+	if hasEff {
+		effName := strings.ToLower(eff.Value)
+		outFileName := effName + ".fx.xpk"
 
-	t.VerboseLn("Saving to file:", outFileName)
-	file, err := os.Create(outFileName)
-	if err != nil {
-		return err
-	}
-	file.Write(raw)
+		t.VerboseLn("Loading effect:", effName)
+		_, err := effect.LoadFromAppdata(effName)
+		if err != nil {
+			return fmt.Errorf(
+				"could not find effect: %s", effName)
+		}
 
-	t.VerboseLn("Finished!")
-	return nil
+		t.VerboseLn("Packaging...")
+		path := environ.AppdataPath("effects", effName)
+		raw, err := pack.GetPackedDirectory(path)
+		if err != nil {
+			return err
+		}
+
+		t.VerboseLn("Saving to file:", outFileName)
+		file, err := os.Create(outFileName)
+		if err != nil {
+			return err
+		}
+		file.Write(raw)
+
+		t.VerboseLn("Finished!")
+		return nil
+	} else {
+		libName := strings.ToLower(lib.Value)
+		outFileName := libName + ".lib.xpk"
+
+		t.VerboseLn("Loading lib:", libName)
+		_, err := libs.LoadFromAppdata(libName)
+		if err != nil {
+			return fmt.Errorf(
+				"could not find effect: %s", libName)
+		}
+
+		t.VerboseLn("Packaging...")
+		path := environ.AppdataPath("libs", libName)
+		raw, err := pack.GetPackedDirectory(path)
+		if err != nil {
+			return err
+		}
+
+		t.VerboseLn("Saving to file:", outFileName)
+		file, err := os.Create(outFileName)
+		if err != nil {
+			return err
+		}
+		file.Write(raw)
+
+		t.VerboseLn("Finished!")
+		return nil
+	}
 }
 
-func _unpack(t *tool.Tool, a tool.ArgumentList) error {
+func _unpackEffect(t *tool.Tool, a tool.ArgumentList) error {
 	file, hasFile := a.NamedArgs["file"]
 
 	if !hasFile {
@@ -178,8 +215,54 @@ func _unpack(t *tool.Tool, a tool.ArgumentList) error {
 
 	inFileName := file.Value
 
-	t.VerboseLn("Unpacking file:", inFileName)
-	err := effect.Unpack(inFileName)
+	t.VerboseLn("Reading file:", inFileName)
+	raw, err := environ.LoadRawfile(inFileName)
+	if err != nil {
+		return err
+	}
+	//fmt.Println(raw)
+
+	t.VerboseLn("Parsing package...")
+	pkg, err := pack.GetPackage(raw)
+	//fmt.Println(pkg)
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Unpacking...")
+	err = pack.UnpackTo(pkg, environ.AppdataPath("effects", pkg.Name))
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Finished!")
+	return nil
+}
+
+func _unpackLib(t *tool.Tool, a tool.ArgumentList) error {
+	file, hasFile := a.NamedArgs["file"]
+
+	if !hasFile {
+		return errors.New(
+			"missing input file, specify with --file <filename>")
+	}
+
+	inFileName := file.Value
+
+	t.VerboseLn("Reading file:", inFileName)
+	raw, err := environ.LoadRawfile(inFileName)
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Parsing package...")
+	pkg, err := pack.GetPackage(raw)
+	if err != nil {
+		return err
+	}
+
+	t.VerboseLn("Unpacking...")
+	err = pack.UnpackTo(pkg, environ.AppdataPath("libs", pkg.Name))
 	if err != nil {
 		return err
 	}
@@ -305,13 +388,23 @@ func _fxInit(t *tool.Tool, a tool.ArgumentList) error {
 }
 
 func _dev(t *tool.Tool, a tool.ArgumentList) error {
-	//fx, _ := effect.LoadFromAppdata("noblue")
-	//pk, _ := effect.Pack(fx)
-	//fmt.Println(pk)
-	//fl, _ := os.Create("test.xfp")
-	//fl.Write(pk)
-	effect.Unpack("test.xfp")
-	return nil
+	pkg, err := pack.GetPackedDirectory(environ.AppdataPath("effects", "noblue"))
+	if err != nil {
+		return err
+	}
+	src := string(pkg)
+	nll := string(byte(0x00))
+	fmt.Println(strings.ReplaceAll(src, nll, "(NULL)"))
+	unpkg, err := pack.GetPackage(pkg)
+	if err != nil {
+		return err
+	}
+	fmt.Println("unpacked:", unpkg)
+	for name, value := range unpkg.Files {
+		fmt.Println("-- name:", name)
+		fmt.Println("-- val:", string(value[0:69]))
+	}
+	return err
 }
 
 func main() {
@@ -320,7 +413,8 @@ func main() {
 	gTool.AddAction("apply", _apply, "Applies an effect")
 	gTool.AddAction("about", _about, "Shows information about and effect")
 	gTool.AddAction("pack", _pack, "Packs an effect into a zip archive")
-	gTool.AddAction("unpack", _unpack, "Unpacks and installs an effect")
+	gTool.AddAction("unpack-effect", _unpackEffect, "Unpacks and installs an effect")
+	gTool.AddAction("unpack-lib", _unpackLib, "Unpacks and installs a lib")
 	gTool.AddAction("save-test", _test, "Generates and saves a test image")
 	gTool.AddAction("make-empty", _fxInit, "Generates an effect template")
 	gTool.AddAction("dev", _dev, "Action for internal testing")
@@ -330,8 +424,10 @@ func main() {
 
 	if len(os.Args) == 1 {
 		err = gTool.RunAction([]string{"", "help"})
-	} else if strings.HasSuffix(os.Args[1], ".xfp") {
-		err = gTool.RunAction([]string{"", "unpack", "--file", os.Args[1]})
+	} else if strings.HasSuffix(os.Args[1], ".fx.xpk") {
+		err = gTool.RunAction([]string{"", "unpack-effect", "--file", os.Args[1]})
+	} else if strings.HasSuffix(os.Args[1], ".lib.xpk") {
+		err = gTool.RunAction([]string{"", "unpack-lib", "--file", os.Args[1]})
 	} else if strings.HasSuffix(os.Args[1], ".xfc") {
 		err = gTool.RunAction([]string{"", "apply-chain", "--file", os.Args[1]})
 	} else {

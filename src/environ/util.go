@@ -42,16 +42,10 @@ func LoadRawfile(path string) ([]byte, error) {
 	defer file.Close()
 
 	buffer := make([]byte, 0xFFFF)
-	_, err = file.Read(buffer)
+	amt, err := file.Read(buffer)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	out := []byte{}
-	for _, b := range buffer {
-		if b != '\x00' {
-			out = append(out, b)
-		}
-	}
-	return out, nil
+	return buffer[0:amt], nil
 }

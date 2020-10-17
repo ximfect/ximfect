@@ -1,12 +1,12 @@
 @echo off
 echo :: Generating version
 py gen-build-ver.py
-cd src
+cd ..\src
 echo :: Building
 go build
 echo :: Deleting old executable
-del ..\ximfect.exe
+del ..\testing\ximfect.exe
 echo :: Moving new executable
-move .\ximfect.exe .. > NUL
+move .\ximfect.exe ..\testing > NUL
 echo :: DONE
-cd ..
+cd ..\testing
