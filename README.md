@@ -3,17 +3,17 @@ An effect-based image processing tool.<br />
 
 
 <i>
-Did you know? ximfect has an <a href="https://youtu.be/PGSvlpF07tU">official theme song</a>!
-
 Need help? Join the official <a href="https://discord.gg/AGPZyUE">Discord server</a>!
 </i>
 
 # Usage
-`ximfect (action) <--namedArgument value --otherArgument other value ...>`
+`ximfect (action) <--namedArgument value --otherArgument 123 (...)>`
 
-You can see a list of all actions by running `ximfect help` or just `ximfect` by itself.
+Run `ximfect help` or just `ximfect` by itself to see a list of actions.
 
-Dragging & dropping a `.xfp` file on the ximfect executable will unpack & install the effect(s) from the file.
+Drag & drop a `.xpk` file on the ximfect executable to unpack & install the effect/lib from the file. 
+
+*(effects come in `.fx.xpk` files, libs come in `.lib.xpk` instead)*
 
 # Docs
 Documentation is available [here](https://ximfect.github.io).
@@ -38,12 +38,19 @@ Documentation is available [here](https://ximfect.github.io).
 3. Download the `effects.zip` file.
 4. Using your command prompt/terminal, navigate to the folder you downloaded the file.
 5. Unzip the file.
-6. For each effect, run `ximfect unpack --file {effect}.xfp`.
+6. For each effect, run `ximfect unpack-effect --file {effect}.fx.xpk`.
 6. **Done!**
 
 ## User-made effects
 
-1. Download the provided `.xfp` file of your effect.
+1. Download the provided `.fx.xpk` file of your effect.
 2. Using your command prompt/terminal, navigate to the folder you downloaded the file.
-3. Run `ximfect unpack --file {effect}.xfp`.
+3. Run `ximfect unpack-effect --file {effect}.fx.xpk`.
+4. **Done!**
+
+# How to install libs
+
+1. Download the provided `.lib.xpk` file of your effect.
+2. Using your command prompt/terminal, navigate to the folder you downloaded the file.
+3. Run `ximfect unpack-lib --file {effect}.lib.xpk`.
 4. **Done!**
