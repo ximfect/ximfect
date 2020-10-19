@@ -5,13 +5,11 @@ package effect
 import (
 	"errors"
 	"fmt"
+	lua "github.com/yuin/gopher-lua"
 	"image/color"
-	"os"
 	"ximfect/environ"
 
 	"github.com/ximfect/ximgy"
-
-	"github.com/robertkrimen/otto"
 )
 
 // Metadata contains additional information about an Effect
@@ -28,10 +26,10 @@ type Metadata struct {
 type Effect struct {
 	Metadata *Metadata
 	source   string
-	vm       *otto.Otto
+	vm       *lua.LState
 }
 
-// NewEffect returns an Effect constructed from the given sournce and metadata
+// NewEffect returns an Effect constructed from the given source and metadata
 func NewEffect(meta *Metadata, src string) *Effect {
 	tmp := new(Effect)
 	tmp.Metadata = meta
@@ -40,24 +38,19 @@ func NewEffect(meta *Metadata, src string) *Effect {
 }
 
 // Load prepares the effect for running
-func (e *Effect) Load(vm *otto.Otto) error {
+func (e *Effect) Load(vm *lua.LState) error {
 	e.vm = vm
 	var err error
 	if len(e.Metadata.Preload) > 0 {
 		fmt.Println("- Preloading...")
 		for _, filename := range e.Metadata.Preload {
-			file, err := os.Open(
-				environ.AppdataPath("effects", e.Metadata.ID, filename))
-			if err != nil {
-				return fmt.Errorf("error during effect preload: %v", err)
-			}
-			_, err = e.vm.Run(file)
+			err := e.vm.DoFile(environ.AppdataPath("effects", e.Metadata.ID, filename))
 			if err != nil {
 				return fmt.Errorf("error during effect preload: %v", err)
 			}
 		}
 	}
-	_, err = e.vm.Run(e.source)
+	err = e.vm.DoString(e.source)
 	if err != nil {
 		return fmt.Errorf("error while loading effect: %v", err)
 	}
@@ -66,60 +59,71 @@ func (e *Effect) Load(vm *otto.Otto) error {
 
 // Run processes the given image on the given VM
 func (e *Effect) Run(pixel ximgy.Pixel) (color.RGBA, error) {
-	def := color.RGBA{0, 0, 0, 0}
-	var (
-		ret otto.Value
-		obj *otto.Object
-		tmp int64
-		err error
-	)
-	code := fmt.Sprintf("effect(%d,%d,{r:%d,g:%d,b:%d,a:%d});",
-		pixel.X, pixel.Y, pixel.R, pixel.G, pixel.B, pixel.A)
-	ret, err = e.vm.Run(code)
+	def := color.RGBA{}
+	inTable := e.vm.CreateTable(6, 1)
+	inTable.RawSet(lua.LString("r"), lua.LNumber(pixel.R))
+	inTable.RawSet(lua.LString("g"), lua.LNumber(pixel.G))
+	inTable.RawSet(lua.LString("b"), lua.LNumber(pixel.B))
+	inTable.RawSet(lua.LString("a"), lua.LNumber(pixel.A))
+	inTable.RawSet(lua.LString("x"), lua.LNumber(pixel.X))
+	inTable.RawSet(lua.LString("y"), lua.LNumber(pixel.Y))
+	err := e.vm.CallByParam(lua.P{
+		Fn:      e.vm.GetGlobal("effect"),
+		NRet:    1,
+		Protect: true,
+	}, inTable)
 	if err != nil {
 		return def, err
 	}
-	if !ret.IsObject() {
-		return def, errors.New("return value os nmot an object")
+	ret := e.vm.Get(-1)
+	e.vm.Pop(1)
+	tbl, ok := ret.(*lua.LTable)
+	if !ok {
+		return def, errors.New("could not convert return value to table")
 	}
-	obj = ret.Object()
-	ret, err = obj.Get("r")
-	if err != nil {
-		return def, err
+
+	redRaw := tbl.RawGet(lua.LString("r"))
+	if redRaw.Type() == lua.LTNil {
+		return def, errors.New("returned red value is nil")
 	}
-	tmp, err = ret.ToInteger()
-	if err != nil {
-		return def, err
+	redNum, ok := redRaw.(lua.LNumber)
+	if !ok {
+		return def, errors.New("returned red value is not a number")
 	}
-	red8 := uint8(tmp)
-	ret, err = obj.Get("g")
-	if err != nil {
-		return def, err
+	red := uint8(redNum)
+
+	greenRaw := tbl.RawGet(lua.LString("g"))
+	if greenRaw.Type() == lua.LTNil {
+		return def, errors.New("returned green value is nil")
 	}
-	tmp, err = ret.ToInteger()
-	if err != nil {
-		return def, err
+	greenNum, ok := greenRaw.(lua.LNumber)
+	if !ok {
+		return def, errors.New("returned green value is not a number")
 	}
-	green8 := uint8(tmp)
-	ret, err = obj.Get("b")
-	if err != nil {
-		return def, err
+	green := uint8(greenNum)
+
+	blueRaw := tbl.RawGet(lua.LString("b"))
+	if blueRaw.Type() == lua.LTNil {
+		return def, errors.New("returned blue value is nil")
 	}
-	tmp, err = ret.ToInteger()
-	if err != nil {
-		return def, err
+	blueNum, ok := blueRaw.(lua.LNumber)
+	if !ok {
+		return def, errors.New("returned blue value is not a number")
 	}
-	blue8 := uint8(tmp)
-	ret, err = obj.Get("a")
-	if err != nil {
-		return def, err
+	blue := uint8(blueNum)
+
+	alphaRaw := tbl.RawGet(lua.LString("a"))
+	if alphaRaw.Type() == lua.LTNil {
+		return def, errors.New("returned alpha value is nil")
 	}
-	tmp, err = ret.ToInteger()
-	if err != nil {
-		return def, err
+	alphaNum, ok := alphaRaw.(lua.LNumber)
+	if !ok {
+		return def, errors.New("returned alpha value is not a number")
 	}
-	alpha8 := uint8(tmp)
-	return color.RGBA{red8, green8, blue8, alpha8}, nil
+	alpha := uint8(alphaNum)
+
+	return color.RGBA{R: red, G: green, B: blue, A: alpha}, nil
+
 }
 
 // SetSource sets the source for the effect

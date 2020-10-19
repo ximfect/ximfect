@@ -1,5 +1,7 @@
 pack/release/*
 ximfect*
+*.xpk
+*.xfc
 *.exe
 *.zip
 *.png

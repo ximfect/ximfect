@@ -14,7 +14,7 @@ import (
 func Load(path, id string) (*Effect, error) {
 	dir := environ.Combine(path, id)
 	metaPath := environ.Combine(dir, "effect.yml")
-	scriptPath := environ.Combine(dir, "effect.js")
+	scriptPath := environ.Combine(dir, "effect.lua")
 
 	var (
 		err         error

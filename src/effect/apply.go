@@ -1,107 +1,81 @@
-/* apllying effects onto images */
+/* applying effects onto images */
 
 package effect
 
 import (
-	"fmt"
+	lua "github.com/yuin/gopher-lua"
 	"strings"
 	"ximfect/libs"
 	"ximfect/tool"
 
-	"github.com/robertkrimen/otto"
 	"github.com/ximfect/ximgy"
 )
 
 // PrepareVM adds all the API functions to a VM.
-func PrepareVM(vm *otto.Otto, img *ximgy.Image, args tool.ArgumentList) error {
+func PrepareVM(vm *lua.LState, img *ximgy.Image, args tool.ArgumentList){
 	size := img.Size
-	var err error
-	err = vm.Set("Require", func(call otto.FunctionCall) otto.Value {
-		libName, err := call.Argument(0).ToString()
-		if err != nil {
-			fmt.Println(err)
-			return otto.Value{}
-		}
+
+	// include()
+	vm.SetGlobal("include", vm.NewFunction(func(L *lua.LState) int {
+		libName := L.ToString(1)
 		lib, err := libs.LoadFromAppdata(libName)
 		if err != nil {
-			fmt.Println(err)
-			return otto.Value{}
+			return 0
 		}
 		libs.ApplyLib(vm, lib)
-		return otto.Value{}
+		return 0
+	}))
+	// size()
+	vm.SetGlobal("size", vm.NewFunction(func(L *lua.LState) int {
+		out := L.CreateTable(2, 1)
+		out.RawSet(lua.LString("x"), lua.LNumber(size.X))
+		out.RawSet(lua.LString("y"), lua.LNumber(size.Y))
+		L.Push(out)
+		return 1
+	}))
+	// at()
+	vm.SetGlobal("at", vm.NewFunction(func(L *lua.LState) int {
+		xRaw := L.Get(1)
+		if xRaw.Type() != lua.LTNumber {
+			return 0
+		}
+		yRaw := L.Get(2)
+		if yRaw.Type() != lua.LTNumber {
+			return 0
+		}
 
-	})
-	if err != nil {
-		return err
-	}
-	err = vm.Set("ImageSize", func(call otto.FunctionCall) otto.Value {
-		sizemap := make(map[string]int)
-		sizemap["x"] = size.X
-		sizemap["y"] = size.Y
-		val, _ := vm.ToValue(sizemap)
-		return val
-	})
-	if err != nil {
-		return err
-	}
-	err = vm.Set("ImageAt", func(call otto.FunctionCall) otto.Value {
-		colormap := make(map[string]int)
-		colormap["r"] = 0
-		colormap["g"] = 0
-		colormap["b"] = 0
-		colormap["a"] = 255
-		obj, err := vm.ToValue(colormap)
-		if err != nil {
-			fmt.Println(err)
-			return otto.Value{}
-		}
-		x64, err := call.Argument(0).ToInteger()
-		if err != nil {
-			return obj
-		}
-		y64, err := call.Argument(1).ToInteger()
-		if err != nil {
-			return obj
-		}
-		x := int(x64)
-		y := int(y64)
-		size := img.Size
-		if (x < 0 || y < 0) || (x >= size.X || y >= size.Y) {
-			return obj
-		}
-		r, g, b, a := img.At(x, y).RGBA()
-		colormap["r"] = int(r >> 8)
-		colormap["g"] = int(g >> 8)
-		colormap["b"] = int(b >> 8)
-		colormap["a"] = int(a >> 8)
-		val, err := vm.ToValue(colormap)
-		return val
-	})
-	if err != nil {
-		return err
-	}
-	m := make(map[string]string)
+		x := int(xRaw.(lua.LNumber))
+		y := int(yRaw.(lua.LNumber))
+
+		pixel := img.At(x, y)
+		out := L.CreateTable(4, 1)
+		out.RawSet(lua.LString("r"), lua.LNumber(pixel.R))
+		out.RawSet(lua.LString("g"), lua.LNumber(pixel.G))
+		out.RawSet(lua.LString("b"), lua.LNumber(pixel.B))
+		out.RawSet(lua.LString("a"), lua.LNumber(pixel.A))
+
+		L.Push(out)
+		return 1
+	}))
+
+	arg := vm.CreateTable(len(args.NamedArgs), 1)
 	for name, v := range args.NamedArgs {
 		n := strings.ToLower(name)
 		if strings.HasPrefix(n, "fx-") {
 			if v.IsValue {
-				m[name[3:]] = v.Value
+				arg.RawSet(lua.LString(n[3:]), lua.LString(v.Value))
 			} else {
-				m[n] = ""
+				arg.RawSet(lua.LString(n[3:]), lua.LNil)
 			}
 		}
 	}
-	val, _ := vm.ToValue(m)
-	err = vm.Set("Arguments", val)
-	if err != nil {
-		return err
-	}
-	return nil
+	vm.SetGlobal("args", arg)
 }
 
 // Apply runs the given Effect on the given Image with an empty VM.
 func Apply(fx *Effect, img *ximgy.Image, tool *tool.Tool, args tool.ArgumentList) error {
-	vm := otto.New()
+	vm := lua.NewState()
+	defer vm.Close()
 	PrepareVM(vm, img, args)
 	fx.Load(vm)
 	tool.VerboseLn("- Working...")
