@@ -15,8 +15,7 @@ Drag & drop a `.xpk` file on the ximfect executable to unpack & install the effe
 
 *(effects come in `.fx.xpk` files, libs come in `.lib.xpk` instead)*
 
-# Docs
-Documentation is available [here](https://ximfect.github.io).
+# The how-tos below are exclusively for the lastest bleeding-edge version of ximfect. The documentation for the latest release can be found [here](https://ximfect.github.io).
 
 # How to install
 
