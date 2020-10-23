@@ -74,10 +74,16 @@ func PrepareVM(vm *lua.LState, img *ximgy.Image, args tool.ArgumentList){
 
 // Apply runs the given Effect on the given Image with an empty VM.
 func Apply(fx *Effect, img *ximgy.Image, tool *tool.Tool, args tool.ArgumentList) error {
+	tool.VerboseLn(" - Creating VM state...")
 	vm := lua.NewState()
 	defer vm.Close()
+	tool.VerboseLn(" - Loading effect...")
+	err := fx.Load(vm)
+	if err != nil {
+		return err
+	}
+	tool.VerboseLn(" - Preparing VM...")
 	PrepareVM(vm, img, args)
-	fx.Load(vm)
-	tool.VerboseLn("- Working...")
+	tool.VerboseLn(" - Working...")
 	return img.Iterate(fx.Run)
 }

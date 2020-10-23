@@ -42,7 +42,7 @@ func (e *Effect) Load(vm *lua.LState) error {
 	e.vm = vm
 	var err error
 	if len(e.Metadata.Preload) > 0 {
-		fmt.Println("- Preloading...")
+		fmt.Println(" - Preloading...")
 		for _, filename := range e.Metadata.Preload {
 			err := e.vm.DoFile(environ.AppdataPath("effects", e.Metadata.ID, filename))
 			if err != nil {

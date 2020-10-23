@@ -31,7 +31,7 @@ var gTool *tool.Tool = tool.NewTool(
 	"Learn more at https://ximfect.github.io")
 
 func _version(t *tool.Tool, a tool.ArgumentList) error {
-	fmt.Println(t.GetVersion())
+	t.PrintLn(t.GetVersion())
 	return nil
 }
 
@@ -69,7 +69,7 @@ func _apply(t *tool.Tool, a tool.ArgumentList) error {
 		return err
 	}
 
-	t.VerboseLn("Applying effect:")
+	t.PrintLn("Applying effect:", effName)
 	err = effect.Apply(fx, inFile, t, a)
 	if err != nil {
 		return err
@@ -81,7 +81,6 @@ func _apply(t *tool.Tool, a tool.ArgumentList) error {
 		return err
 	}
 
-	t.VerboseLn("Finished!")
 	return nil
 }
 
@@ -106,13 +105,13 @@ func _about(t *tool.Tool, a tool.ArgumentList) error {
 
 		meta := fx.Metadata
 
-		fmt.Printf("======== About %s ========\n", effName)
-		fmt.Printf("Name:           %s\n", meta.Name)
-		fmt.Printf("Version:        %s\n", meta.Version)
-		fmt.Printf("Author:         %s\n", meta.Author)
-		fmt.Printf("Description:    %s\n", meta.Desc)
+		t.PrintF("======== About %s ========\n", effName)
+		t.PrintF("Name:           %s\n", meta.Name)
+		t.PrintF("Version:        %s\n", meta.Version)
+		t.PrintF("Author:         %s\n", meta.Author)
+		t.PrintF("Description:    %s\n", meta.Desc)
 		if len(meta.Preload) > 0 {
-			fmt.Printf("Preload:         %v\n", strings.Join(meta.Preload, ", "))
+			t.PrintF("Preload:         %v\n", strings.Join(meta.Preload, ", "))
 		}
 	} else if hasLib {
 		t.VerboseLn("Loading lib:", libName)
@@ -159,7 +158,7 @@ func _pack(t *tool.Tool, a tool.ArgumentList) error {
 				"could not find effect: %s", effName)
 		}
 
-		t.VerboseLn("Packaging...")
+		t.PrintLn("Packaging...")
 		path := environ.AppdataPath("effects", effName)
 		raw, err := pack.GetPackedDirectory(path)
 		if err != nil {
@@ -173,7 +172,6 @@ func _pack(t *tool.Tool, a tool.ArgumentList) error {
 		}
 		file.Write(raw)
 
-		t.VerboseLn("Finished!")
 		return nil
 	} else {
 		libName := strings.ToLower(lib.Value)
@@ -229,13 +227,12 @@ func _unpackEffect(t *tool.Tool, a tool.ArgumentList) error {
 		return err
 	}
 
-	t.VerboseLn("Unpacking...")
+	t.PrintLn("Unpacking...")
 	err = pack.UnpackTo(pkg, environ.AppdataPath("effects", pkg.Name))
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Finished!")
 	return nil
 }
 
@@ -261,13 +258,12 @@ func _unpackLib(t *tool.Tool, a tool.ArgumentList) error {
 		return err
 	}
 
-	t.VerboseLn("Unpacking...")
+	t.PrintLn("Unpacking...")
 	err = pack.UnpackTo(pkg, environ.AppdataPath("libs", pkg.Name))
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Finished!")
 	return nil
 }
 
@@ -305,7 +301,7 @@ func _applyChain(t *tool.Tool, a tool.ArgumentList) error {
 		return err
 	}
 
-	t.VerboseLn("Applying FX chain...")
+	t.PrintLn("Applying FX chain...")
 	res, err := fxchain.Apply(src, img, t)
 	if err != nil {
 		return err
@@ -317,7 +313,6 @@ func _applyChain(t *tool.Tool, a tool.ArgumentList) error {
 		return err
 	}
 
-	t.VerboseLn("Finished!")
 	return nil
 }
 
@@ -359,7 +354,7 @@ func _fxInit(t *tool.Tool, a tool.ArgumentList) error {
 
 	effName := strings.ToLower(eff.Value)
 
-	t.VerboseLn("Creating effect structure")
+	t.PrintLn("Creating effect structure")
 	err := os.Mkdir(environ.AppdataPath("effects", effName), os.ModePerm)
 	if err != nil {
 		return err
@@ -383,7 +378,7 @@ func _fxInit(t *tool.Tool, a tool.ArgumentList) error {
 		return err
 	}
 
-	t.VerboseLn("Finished! View your effect in:", environ.AppdataPath("effects", effName))
+	t.PrintLn(" -- View your effect in:", environ.AppdataPath("effects", effName))
 	return nil
 }
 

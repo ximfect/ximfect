@@ -4,5 +4,5 @@ package tool
 
 const (
 	// Version represents the current version of ximfect
-	Version string = "0.3.0+15e39f8"
+	Version string = "0.3.0+4720690"
 )
