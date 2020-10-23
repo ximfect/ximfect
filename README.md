@@ -6,6 +6,8 @@ An effect-based image processing tool.<br />
 Need help? Join the official <a href="https://discord.gg/AGPZyUE">Discord server</a>!
 </i>
 
+# This README contains information for the lastest development version of ximfect. The documentation for the latest release can be found [here](https://ximfect.github.io).
+
 # Usage
 `ximfect (action) <--namedArgument value --otherArgument 123 (...)>`
 
@@ -14,8 +16,6 @@ Run `ximfect help` or just `ximfect` by itself to see a list of actions.
 Drag & drop a `.xpk` file on the ximfect executable to unpack & install the effect/lib from the file. 
 
 *(effects come in `.fx.xpk` files, libs come in `.lib.xpk` instead)*
-
-# The how-tos below are exclusively for the lastest bleeding-edge version of ximfect. The documentation for the latest release can be found [here](https://ximfect.github.io).
 
 # How to install
 
