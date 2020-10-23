@@ -49,3 +49,19 @@ func LoadRawfile(path string) ([]byte, error) {
 
 	return buffer[0:amt], nil
 }
+
+func EnsureAppdata() {
+	var err error
+
+	ensureDir := func(path string) {
+		_, err = os.Stat(path)
+		if err != nil {
+			os.Mkdir(path, os.ModePerm)
+		}
+	}
+
+	ensureDir(Appdata)
+	ensureDir(AppdataPath("effects"))
+	ensureDir(AppdataPath("libs"))
+	ensureDir(AppdataPath("logs"))
+}

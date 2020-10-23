@@ -383,26 +383,12 @@ func _fxInit(t *tool.Tool, a tool.ArgumentList) error {
 }
 
 func _dev(t *tool.Tool, a tool.ArgumentList) error {
-	pkg, err := pack.GetPackedDirectory(environ.AppdataPath("effects", "noblue"))
-	if err != nil {
-		return err
-	}
-	src := string(pkg)
-	nll := string(byte(0x00))
-	fmt.Println(strings.ReplaceAll(src, nll, "(NULL)"))
-	unpkg, err := pack.GetPackage(pkg)
-	if err != nil {
-		return err
-	}
-	fmt.Println("unpacked:", unpkg)
-	for name, value := range unpkg.Files {
-		fmt.Println("-- name:", name)
-		fmt.Println("-- val:", string(value[0:69]))
-	}
-	return err
+	panic("hello")
+	return nil
 }
 
 func main() {
+	environ.EnsureAppdata()
 	gTool.Init()
 	gTool.AddAction("version", _version, "Shows the version")
 	gTool.AddAction("apply", _apply, "Applies an effect")

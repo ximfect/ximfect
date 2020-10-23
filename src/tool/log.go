@@ -18,15 +18,9 @@ func NewLogger(path, name string) *Logger {
 	tmp := &Logger{Name: name}
 	tmp.Name = name
 
-	opened, err := os.Open(path)
-	if err != nil {
-		created, err := os.Create(path)
-		if err == nil {
-			tmp.SetOutput(created, path)
-		}
-	} else {
-		tmp.SetOutput(opened, path)
-	}
+	created, _ := os.Create(path)
+	tmp.SetOutput(created, path)
+
 	defer tmp.PanicHandler()
 	return tmp
 }
@@ -47,16 +41,15 @@ func (l *Logger) SetOutput(out *os.File, path string) {
 	l.Output = out
 	l.OutputPath = path
 	l.hasOutput = true
-	defer l.Output.Close()
 }
 
 func (l *Logger) writeOut(msg string) {
 	if l.hasOutput {
 		_, err := l.Output.Write([]byte(msg + "\n"))
 		if err != nil {
-			l.VerboseLn("There was a problem writing to file:", err,
-				"(file output is now disabled)")
 			l.hasOutput = false
+			l.PrintLn("There was a problem writing to file: ", err,
+				"\n(file output is now disabled)")
 		}
 	}
 }
