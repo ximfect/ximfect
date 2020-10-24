@@ -7,8 +7,6 @@ Need help? Join the official <a href="https://discord.gg/AGPZyUE">Discord server
 </i>
 
 # This README contains information for the lastest development version of ximfect. The documentation for the latest release can be found [here](https://ximfect.github.io).
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fximfect%2Fximfect.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fximfect%2Fximfect?ref=badge_shield)
-
 
 # Usage
 `ximfect (action) <--namedArgument value --otherArgument 123 (...)>`
@@ -55,7 +53,3 @@ Drag & drop a `.xpk` file on the ximfect executable to unpack & install the effe
 2. Using your command prompt/terminal, navigate to the folder you downloaded the file.
 3. Run `ximfect unpack-lib --file {effect}.lib.xpk`.
 4. **Done!**
-
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fximfect%2Fximfect.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fximfect%2Fximfect?ref=badge_large)
