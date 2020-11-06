@@ -8,6 +8,7 @@ import (
 
 // LoadTextfile opens and reads a text file, returns it's contents as a string
 func LoadTextfile(path string) (string, error) {
+	out := []byte{}
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -16,38 +17,71 @@ func LoadTextfile(path string) (string, error) {
 	defer file.Close()
 
 	buffer := make([]byte, 0xFFFF)
-	_, err = file.Read(buffer)
+	n, err := file.Read(buffer)
+	total := n
 	if err != nil {
 		return "", err
 	}
-
-	out := ""
 	for _, b := range buffer {
-		if b == 0 {
-			break
-		}
-		out += string(b)
+		out = append(out, b)
 	}
 
-	return out, nil
+	for n == 0xFFFF {
+		for _, b := range buffer {
+			out = append(out, b)
+		}
+		buffer = make([]byte, 0xFFFF)
+		_, err = file.Seek(int64(n), 1)
+		if err != nil {
+			return "", err
+		}
+		n, err = file.Read(buffer)
+		if err != nil {
+			return "", err
+		}
+		total += n
+	}
+
+	return string(out[0:total]), nil
 }
 
-// LoadRawfile opens and reads a text file, returns it's contents as a string
+// LoadRawfile opens and reads a text file, returns it's contents as a []byte
 func LoadRawfile(path string) ([]byte, error) {
+	out := []byte{}
 	file, err := os.Open(path)
 	if err != nil {
-		return []byte{}, err
+		return out, err
 	}
 
 	defer file.Close()
 
 	buffer := make([]byte, 0xFFFF)
-	amt, err := file.Read(buffer)
+	n, err := file.Read(buffer)
+	total := n
 	if err != nil {
-		return []byte{}, err
+		return out, err
+	}
+	for _, b := range buffer {
+		out = append(out, b)
 	}
 
-	return buffer[0:amt], nil
+	for n == 0xFFFF {
+		for _, b := range buffer {
+			out = append(out, b)
+		}
+		buffer = make([]byte, 0xFFFF)
+		_, err = file.Seek(int64(n), 1)
+		if err != nil {
+			return out, err
+		}
+		n, err = file.Read(buffer)
+		if err != nil {
+			return out, err
+		}
+		total += n
+	}
+
+	return out[0:total], nil
 }
 
 func EnsureAppdata() {
@@ -56,7 +90,7 @@ func EnsureAppdata() {
 	ensureDir := func(path string) {
 		_, err = os.Stat(path)
 		if err != nil {
-			os.Mkdir(path, os.ModePerm)
+			_ = os.Mkdir(path, os.ModePerm)
 		}
 	}
 
