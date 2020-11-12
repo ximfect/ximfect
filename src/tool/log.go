@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// Logger is a simple flile + console logger
 type Logger struct {
 	Output     *os.File
 	OutputPath string
@@ -54,6 +55,7 @@ func (l *Logger) writeOut(msg string) {
 	}
 }
 
+// PanicHandler is a generic panic() handler
 func (l *Logger) PanicHandler() {
 	if r := recover(); r != nil {
 		l.PrintLn("A critical error has occurred and the program must exit:\n", r)
@@ -76,7 +78,7 @@ func (l *Logger) VerboseLn(a ...interface{}) {
 
 // VerboseF is a Printf that only appears if isVerbose is true.
 // (it is still written to the file output)
-func (l *Logger) VerboseF (format string, a ...interface{}) {
+func (l *Logger) VerboseF(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
 	if l.isVerbose {
 		fmt.Println(msg)
@@ -92,7 +94,7 @@ func (l *Logger) PrintLn(a ...interface{}) {
 }
 
 // PrintF is a Printf that also write to file output.
-func (l *Logger) PrintF (format string, a ...interface{}) {
+func (l *Logger) PrintF(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
 	fmt.Println(msg)
 	l.writeOut(msg)

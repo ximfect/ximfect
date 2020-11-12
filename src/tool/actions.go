@@ -9,21 +9,29 @@ import (
 	"ximfect/environ"
 )
 
-// Action is a function of an Action
-type Action func(*Tool, ArgumentList) error
+// ActionFunc represents an Action's function
+type ActionFunc func(*Tool, ArgumentList) error
+
+// Action represents a Tool's action
+type Action struct {
+	Func  ActionFunc
+	Desc  string
+	Usage string
+}
+
+//type Action func(*Tool, ArgumentList) error
 
 // ActionMap is a string->Action map
 type ActionMap map[string]Action
 
 // Tool handles actions that are registered to it
 type Tool struct {
-	actions     ActionMap
-	actionsDesc map[string]string
-	name        string
-	version     string
-	desc        string
-	Log         *Logger
-	LogName     string
+	actions ActionMap
+	name    string
+	version string
+	desc    string
+	Log     *Logger
+	LogName string
 }
 
 // NewTool makes a blank tool
@@ -34,7 +42,7 @@ func NewTool(name, version, desc string) *Tool {
 	t := time.Now()
 	logName := fmt.Sprintf("%d-%d-%d_%d-%d-%d",
 		t.Day(), t.Month(), t.Year(), t.Hour(), t.Minute(), t.Second())
-	logFilePath := environ.AppdataPath("logs", logName + ".log")
+	logFilePath := environ.AppdataPath("logs", logName+".log")
 	tmp.Log = NewLogger(logFilePath, logName)
 	return tmp
 }
@@ -54,7 +62,6 @@ func (t *Tool) GetVersion() string {
 // ClearActions clears the action map of the Tool
 func (t *Tool) ClearActions() {
 	t.actions = make(ActionMap)
-	t.actionsDesc = make(map[string]string)
 }
 
 // RunAction parses the arguments provided and runs any action detected
@@ -77,26 +84,30 @@ func (t *Tool) RunAction(args []string) error {
 	}
 
 	t.VerboseLn("Running action...")
-	actionReturn := action(t, argList)
+	actionReturn := action.Func(t, argList)
 	if actionReturn != nil {
 		return fmt.Errorf("%s: %v", actionName, actionReturn)
 	}
-	t.PrintLn("Finished!")
+	t.VerboseLn("Finished!")
 	return nil
 }
 
 // AddAction adds an action to the tool
-func (t *Tool) AddAction(name string, action Action, desc string) {
+func (t *Tool) AddAction(name string, action Action) {
 	actionName := strings.ToLower(name)
 	t.actions[actionName] = action
-	t.actionsDesc[actionName] = desc
 	t.VerboseLn("Added action:", name)
+}
+
+// AddActionQuick adds an action without the need to instantiate an Action
+func (t *Tool) AddActionQuick(name, desc, usage string, act ActionFunc) {
+	action := Action{act, desc, usage}
+	t.AddAction(name, action)
 }
 
 // DelAction deletes an action from the tool
 func (t *Tool) DelAction(name string) {
 	delete(t.actions, strings.ToLower(name))
-	delete(t.actionsDesc, strings.ToLower(name))
 }
 
 // VerboseLn maps directly to Logger.VerboseLn
@@ -138,11 +149,28 @@ func (t *Tool) Welcome() {
 
 // Init adds an additional help action
 func (t *Tool) Init() {
-	t.AddAction("help", func(tool *Tool, a ArgumentList) error {
-		t.PrintLn("Here are the available actions:")
-		for actionName := range t.actions {
-			t.PrintLn("\t", actionName, "-", t.actionsDesc[actionName])
+	t.AddActionQuick("help", "Shows help", "", func(tool *Tool, a ArgumentList) error {
+		t.PrintLn("Here are the available actions:\n")
+		for name, action := range t.actions {
+			if len(action.Usage) == 0 {
+				t.PrintLn("\t* ", name, " -- ", action.Desc)
+			} else {
+				t.PrintLn("\t* ", name, " ", action.Usage, " -- ", action.Desc)
+			}
 		}
 		return nil
-	}, "Shows help")
+	})
+
+	//keys := make([]string, 0, len(t.actions))
+	//for k := range t.actions {
+	//	keys = append(keys, k)
+	//}
+	//sort.Strings(keys)
+	//
+	//sorted := make(ActionMap)
+	//for _, k := range keys {
+	//	sorted[k] = t.actions[k]
+	//}
+	//
+	//t.actions = sorted
 }
