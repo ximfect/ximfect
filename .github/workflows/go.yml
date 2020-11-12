@@ -33,7 +33,7 @@ jobs:
         go build
 
     - name: Test
-      run: src\ximfect.exe save-test --out test.png
+      run: src\ximfect.exe gen-image --out test.png
 
   build-ubuntu:
     name: Build on Ubuntu
@@ -60,4 +60,4 @@ jobs:
         go build
 
     - name: Test
-      run: ./src/ximfect save-test --out test.png
+      run: ./src/ximfect gen-image --out test.png
