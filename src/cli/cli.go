@@ -11,6 +11,5 @@ var gTool *tool.Tool = tool.NewTool(
 
 // GetGtool returns the global Tool
 func GetGtool() *tool.Tool {
-	gTool.Init()
 	return gTool
 }
