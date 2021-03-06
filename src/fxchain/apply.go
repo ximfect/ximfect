@@ -1,6 +1,7 @@
 package fxchain
 
 import (
+	"fmt"
 	"ximfect/effect"
 	"ximfect/tool"
 
@@ -8,28 +9,29 @@ import (
 )
 
 // Apply parses an FX chain and applies it to the supplied Image.
-func Apply(src string, img *ximgy.Image, t *tool.Tool) (*ximgy.Image, error) {
-	t.VerboseLn(" - Parsing FX chain...")
+func Apply(src string, img *ximgy.Image, ctx *tool.Context) (*ximgy.Image, error) {
+	log := ctx.Log.Sub("FXChain")
+	log.Debug("Parsing FX chain...")
 	chain := ParseChain(src)
 	total := len(chain)
 	for i, pair := range chain {
-		t.VerboseF(" - [%d/%d] Effect `%s`:\n", i, total, pair.effect)
-		t.VerboseLn(" -- Loading effect...")
+		log.Debug(fmt.Sprintf("[%d/%d] Effect `%s`:\n", i, total, pair.effect))
+		log.Debug("Loading effect...")
 		eff, err := effect.LoadFromAppdata(pair.effect)
 		if err != nil {
 			return nil, err
 		}
-		t.VerboseF(" -- Preparing arguments...")
+		log.Debug("Preparing arguments...")
 		a := tool.ArgumentList{}
 		for k, v := range pair.params {
 			a.NamedArgs[k] = tool.Argument{IsValue: true, Value: v, BoolValue: true}
 		}
-		t.VerboseLn(" -- Applying effect...")
-		err = effect.Apply(eff, img, t, a)
+		log.Debug("Applying effect...")
+		err = effect.Apply(eff, img, ctx)
 		if err != nil {
 			return nil, err
 		}
-		t.VerboseLn(" -- Updating source...")
+		log.Debug("Updating source...")
 		img.SetSource(img.GetOutput())
 	}
 	return img, nil

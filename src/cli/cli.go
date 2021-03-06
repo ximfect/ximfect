@@ -1,15 +1,21 @@
 package cli
 
 import (
+	"os"
+
 	"ximfect/tool"
 )
 
-var gTool *tool.Tool = tool.NewTool(
+// MasterTool is the main Tool for this application
+var MasterTool = tool.NewTool(
 	"ximfect",
-	tool.Version,
-	"Learn more at https://ximfect.github.io")
+	"An effect-based image processing tool.",
+	tool.Version)
 
-// GetGtool returns the global Tool
-func GetGtool() *tool.Tool {
-	return gTool
+func init() {
+	for _, a := range os.Args {
+		if a == "--debug" {
+			MasterTool.MasterLog.SetLevel(0)
+		}
+	}
 }

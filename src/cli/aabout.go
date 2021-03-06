@@ -9,14 +9,14 @@ import (
 	"ximfect/tool"
 )
 
-func aboutTool(t *tool.Tool, a tool.ArgumentList) error {
-	t.PrintLn(t.GetVersion())
+func aboutTool(ctx *tool.Context) error {
+	fmt.Println(ctx.Tool.Version)
 	return nil
 }
 
-func describe(t *tool.Tool, a tool.ArgumentList) error {
-	eff, hasEff := a.NamedArgs["effect"]
-	lib, hasLib := a.NamedArgs["lib"]
+func describe(ctx *tool.Context) error {
+	eff, hasEff := ctx.Args.NamedArgs["effect"]
+	lib, hasLib := ctx.Args.NamedArgs["lib"]
 
 	if !(hasEff || hasLib) {
 		return errors.New(
@@ -27,7 +27,7 @@ func describe(t *tool.Tool, a tool.ArgumentList) error {
 	libName := strings.ToLower(lib.Value)
 
 	if hasEff {
-		t.VerboseLn("Loading effect:", effName)
+		ctx.Log.Debug("Loading effect: " + effName)
 		fx, err := effect.LoadFromAppdata(effName)
 		if err != nil {
 			return err
@@ -35,16 +35,16 @@ func describe(t *tool.Tool, a tool.ArgumentList) error {
 
 		meta := fx.Metadata
 
-		t.PrintF("======== About %s ========\n", effName)
-		t.PrintF("Name:           %s\n", meta.Name)
-		t.PrintF("Version:        %s\n", meta.Version)
-		t.PrintF("Author:         %s\n", meta.Author)
-		t.PrintF("Description:    %s\n", meta.Desc)
+		fmt.Printf("======== About %s ========\n", effName)
+		fmt.Printf("Name:           %s\n", meta.Name)
+		fmt.Printf("Version:        %s\n", meta.Version)
+		fmt.Printf("Author:         %s\n", meta.Author)
+		fmt.Printf("Description:    %s\n", meta.Desc)
 		if len(meta.Preload) > 0 {
-			t.PrintF("Preload:         %v\n", strings.Join(meta.Preload, ", "))
+			fmt.Printf("Preload:         %v\n", strings.Join(meta.Preload, ", "))
 		}
 	} else if hasLib {
-		t.VerboseLn("Loading lib:", libName)
+		ctx.Log.Debug("Loading lib: " + libName)
 		library, err := libs.LoadFromAppdata(libName)
 		if err != nil {
 			return err
@@ -63,26 +63,34 @@ func describe(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
-func dev(t *tool.Tool, a tool.ArgumentList) error {
+func dev(ctx *tool.Context) error {
 	//panic("hello")
 	return nil
 }
 
 func init() {
-	gTool.VerboseLn("Loading actions from aabout...")
-	gTool.AddActionQuick(
-		"about-tool",
-		"Shows version information",
-		"",
-		aboutTool)
-	gTool.AddActionQuick(
-		"describe",
-		"Shows an effect/lib's information",
-		"[--effect (id)] or [--lib (id)]",
-		describe)
-	gTool.AddActionQuick(
+	MasterTool.ToolLog.Debug("Loading actions from aabout...")
+
+	aboutToolAction := &tool.Action{
+		aboutTool,
+		"Shows version information.",
+		tool.ArgumentList{}}
+
+	describeAction := &tool.Action{
+		describe,
+		"Shows an effect/lib's information.",
+		tool.ArgumentList{
+			tool.ArgSlice{},
+			tool.ArgMap{
+				"effect": tool.Argument{true, "id", false},
+				"lib":    tool.Argument{true, "id", false}}}}
+
+	devAction := &tool.Action{
+		dev,
 		"dev",
-		"Action for testing purposes",
-		"",
-		dev)
+		tool.ArgumentList{}}
+
+	MasterTool.AddAction("about-tool", aboutToolAction)
+	MasterTool.AddAction("describe", describeAction)
+	MasterTool.AddAction("dev", devAction)
 }

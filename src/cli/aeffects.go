@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"os"
@@ -15,48 +16,35 @@ import (
 	"github.com/ximfect/ximgy"
 )
 
-func applyEffect(t *tool.Tool, a tool.ArgumentList) error {
-	eff, hasEff := a.NamedArgs["effect"]
-	file, hasFile := a.NamedArgs["file"]
-	out, hasOut := a.NamedArgs["out"]
-
-	if !hasEff {
-		return errors.New(
-			"missing effect argument, specify with --effect <id>")
-	}
-	if !hasFile {
-		return errors.New(
-			"missing input file, specify with --file <filename>")
-	}
-	if !hasOut {
-		return errors.New(
-			"missing output file, specify with --out <filename>")
+func applyEffect(ctx *tool.Context) error {
+	if len(ctx.Args.PosArgs) < 3 {
+		return errors.New("not enough arguments (want: image, effect-id, output)")
 	}
 
-	effName := eff.Value
-	inFileName := file.Value
-	outFileName := out.Value
+	imageFilename := ctx.Args.PosArgs[0]
+	effID := ctx.Args.PosArgs[1]
+	outputFilename := ctx.Args.PosArgs[2]
 
-	t.VerboseLn("Loading effect:", effName)
-	fx, err := effect.LoadFromAppdata(effName)
+	ctx.Log.Debug("Loading effect: " + effID)
+	fx, err := effect.LoadFromAppdata(effID)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Opening file:", inFileName)
-	inFile, err := ximgy.Open(inFileName)
+	ctx.Log.Debug("Opening file: " + imageFilename)
+	image, err := ximgy.Open(imageFilename)
 	if err != nil {
 		return err
 	}
 
-	t.PrintLn("Applying effect:", effName)
-	err = effect.Apply(fx, inFile, t, a)
+	ctx.Log.Debug("Applying effect: " + effID)
+	err = effect.Apply(fx, image, ctx)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Saving output file:", outFileName)
-	err = ximgy.Save(inFile, outFileName)
+	ctx.Log.Debug("Saving output file: " + outputFilename)
+	err = ximgy.Save(image, outputFilename)
 	if err != nil {
 		return err
 	}
@@ -65,90 +53,87 @@ func applyEffect(t *tool.Tool, a tool.ArgumentList) error {
 }
 
 const (
-	scriptTemplate string = "function effect(x, y, pixel) {\n	// write your code here\n	return {r: pixel.r, g: pixel.g, b: pixel.b, a: pixel.a};\n}\n"
-	metaTemplate   string = "name: Empty Effect\nversion: 1.0.0\nauthor: unknown <>\ndesc: ximfect generated empty effect\n"
+	scriptTemplate = "function effect(x, y, pixel) {\n	// write your code here\n	return {r: pixel.r, g: pixel.g, b: pixel.b, a: pixel.a};\n}\n"
+	metaTemplate   = "name: Empty Effect\nversion: 1.0.0\nauthor: unknown <>\ndesc: ximfect generated empty effect\n"
 )
 
-func initEffect(t *tool.Tool, a tool.ArgumentList) error {
-	eff, hasEff := a.NamedArgs["effect"]
-
-	if !hasEff {
-		return errors.New(
-			"missing effect argument, specify with --effect <id>")
+func initEffect(ctx *tool.Context) error {
+	if len(ctx.Args.PosArgs) < 1 {
+		return errors.New("not enough arguments (want: effect-id)")
 	}
 
-	effName := strings.ToLower(eff.Value)
+	var noTemplate bool
+	noTemplateArg, hasNoTemplate := ctx.Args.NamedArgs["no-template"]
+	if hasNoTemplate {
+		noTemplate = noTemplateArg.BoolValue
+	} else {
+		noTemplate = false
+	}
 
-	t.PrintLn("Creating effect structure")
-	err := os.Mkdir(environ.AppdataPath("effects", effName), os.ModePerm)
+	effID := strings.ToLower(ctx.Args.PosArgs[0])
+	effPath := environ.AppdataPath("effects", effID)
+	scriptPath := environ.Combine(effPath, "effect.lua")
+	metaPath := environ.Combine(effPath, "effect.yml")
+
+	ctx.Log.Debug("Creating effect structure")
+	err := os.Mkdir(effPath, os.ModePerm)
 	if err != nil {
 		return err
 	}
-	script, err := os.Create(environ.AppdataPath("effects", effName, "effect.js"))
+	script, err := os.Create(scriptPath)
 	if err != nil {
 		return err
 	}
-	meta, err := os.Create(environ.AppdataPath("effects", effName, "effect.yml"))
-	if err != nil {
-		return err
-	}
-
-	t.VerboseLn("Writing file templates...")
-	_, err = script.WriteString(scriptTemplate)
-	if err != nil {
-		return err
-	}
-	_, err = meta.WriteString(metaTemplate)
+	meta, err := os.Create(metaPath)
 	if err != nil {
 		return err
 	}
 
-	t.PrintLn(" -- View your effect in:", environ.AppdataPath("effects", effName))
+	if !noTemplate {
+		ctx.Log.Debug("Writing file templates...")
+		_, err = script.WriteString(scriptTemplate)
+		if err != nil {
+			return err
+		}
+		_, err = meta.WriteString(metaTemplate)
+		if err != nil {
+			return err
+		}
+	}
+
+	fmt.Println(" -- View your effect in:", environ.AppdataPath("effects", effID))
 	return nil
 }
 
-func applyChain(t *tool.Tool, a tool.ArgumentList) error {
-	file, hasFile := a.NamedArgs["file"]
-	out, hasOut := a.NamedArgs["out"]
-	inp, hasInp := a.NamedArgs["img"]
-
-	if !hasFile {
-		return errors.New(
-			"missing input file, specify with --file <filename>")
-	}
-	if !hasOut {
-		return errors.New(
-			"missing output file, specify with --out <filename>")
-	}
-	if !hasInp {
-		return errors.New(
-			"missing input image, specify with --img <filename>")
+func applyChain(ctx *tool.Context) error {
+	if len(ctx.Args.PosArgs) < 3 {
+		return errors.New("not enough arguments (want: image, fx-chain, output)")
 	}
 
-	inFileName := file.Value
-	outFileName := out.Value
-	inpFileName := inp.Value
+	imageFilename := ctx.Args.PosArgs[0]
+	chainFilename := ctx.Args.PosArgs[1]
+	outputFilename := ctx.Args.PosArgs[2]
 
-	t.VerboseLn("Loading FX chain: ", inFileName)
-	src, err := environ.LoadTextfile(inFileName)
+	ctx.Log.Debug("Loading FX chain: " + chainFilename)
+	src, err := environ.LoadTextfile(chainFilename)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Loading image:", inpFileName)
-	img, err := ximgy.Open(inpFileName)
+	ctx.Log.Debug("Loading image: " + imageFilename)
+	img, err := ximgy.Open(imageFilename)
 	if err != nil {
 		return err
 	}
 
-	t.PrintLn("Applying FX chain...")
-	res, err := fxchain.Apply(src, img, t)
+	ctx.Log.Debug("Applying FX chain...")
+	res, err := fxchain.Apply(src, img, ctx)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Saving result:", outFileName)
-	err = ximgy.Save(res, outFileName)
+	ctx.Log.Debug("Saving result: " + outputFilename)
+	err = ximgy.Save(res, outputFilename)
 	if err != nil {
 		return err
 	}
@@ -156,17 +141,14 @@ func applyChain(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
-func genImage(t *tool.Tool, a tool.ArgumentList) error {
-	out, hasOut := a.NamedArgs["out"]
-
-	if !hasOut {
-		return errors.New(
-			"missing output file, specify with --out <filename>")
+func genImage(ctx *tool.Context) error {
+	if len(ctx.Args.PosArgs) < 1 {
+		return errors.New("not enough arguments (want: output)")
 	}
 
-	outFileName := out.Value
+	outputFilename := ctx.Args.PosArgs[0]
 
-	t.VerboseLn("Generating test image...")
+	ctx.Log.Debug("Generating test image...")
 	amt := 1024
 	img := ximgy.MakeEmpty(image.Rect(0, 0, amt, amt))
 	step := amt / 256
@@ -174,36 +156,49 @@ func genImage(t *tool.Tool, a tool.ArgumentList) error {
 		return color.RGBA{uint8(pixel.X / step), 0, uint8(pixel.Y / step), 255}, nil
 	})
 
-	t.VerboseLn("Saving output file:", outFileName)
-	err := ximgy.Save(img, outFileName)
+	ctx.Log.Debug("Saving output file: " + outputFilename)
+	err := ximgy.Save(img, outputFilename)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Finished!")
 	return nil
 }
 
 func init() {
-	gTool.VerboseLn("Loading actions from aeffects...")
-	gTool.AddActionQuick(
-		"apply-effect",
-		"Applies an effect to an image",
-		"--effect (id) --file (name) --out (name)",
-		applyEffect)
-	gTool.AddActionQuick(
-		"init-effect",
-		"Initializes an empty effect template",
-		"--effect (id)",
-		initEffect)
-	gTool.AddActionQuick(
-		"apply-chain",
-		"Applies an effect chain to an image",
-		"--file (name) --out (name) --img (name)",
-		applyChain)
-	gTool.AddActionQuick(
-		"gen-image",
-		"Generates an image",
-		"--out (name)",
-		genImage)
+	MasterTool.ToolLog.Debug("Loading actions from aeffects...")
+
+	applyEffectAction := &tool.Action{
+		applyEffect,
+		"Applies an effect to an image.",
+		tool.ArgumentList{
+			tool.ArgSlice{"image", "effect-id", "output"},
+			tool.ArgMap{}}}
+
+	applyChainAction := &tool.Action{
+		applyChain,
+		"Applies an effect chain to an image.",
+		tool.ArgumentList{
+			tool.ArgSlice{"image", "fx-chain", "output"},
+			tool.ArgMap{}}}
+
+	initEffectAction := &tool.Action{
+		initEffect,
+		"Initializes an empty effect.",
+		tool.ArgumentList{
+			tool.ArgSlice{"effect-id"},
+			tool.ArgMap{
+				"no-template": tool.Argument{false, "generate template?", false}}}}
+
+	genImageAction := &tool.Action{
+		genImage,
+		"Generates an image.",
+		tool.ArgumentList{
+			tool.ArgSlice{"output"},
+			tool.ArgMap{}}}
+
+	MasterTool.AddAction("apply-effect", applyEffectAction)
+	MasterTool.AddAction("apply-chain", applyChainAction)
+	MasterTool.AddAction("init-effect", initEffectAction)
+	MasterTool.AddAction("gen-image", genImageAction)
 }

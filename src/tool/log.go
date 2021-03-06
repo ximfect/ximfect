@@ -1,101 +1,106 @@
 package tool
 
 import (
-	"fmt"
-	"os"
+	"io"
+	"time"
+
+	"github.com/mattn/go-colorable"
 )
 
-// Logger is a simple flile + console logger
-type Logger struct {
-	Output     *os.File
-	OutputPath string
-	hasOutput  bool
-	isVerbose  bool
-	Name       string
+// LevelNames holds the names of the different levels of Log entries.
+var LevelNames = []string{
+	"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
+
+// LevelColors holds ANSI color codes for the different Entry levels.
+var LevelColors = []string{
+	"\033[0m", "\033[0m", "\033[0;33m", "\033[0;31m", "\033[41m"}
+
+// Entry represents an entry in a Log.
+type Entry struct {
+	ts  time.Time
+	src string
+	lvl int
+	msg string
 }
 
-// NewLogger creates a new Logger with a File and a name.
-func NewLogger(path, name string) *Logger {
-	tmp := &Logger{Name: name}
-	tmp.Name = name
+// Format returns a human-readable version of the Entry.
+func (e Entry) Format() string {
+	tsF := e.ts.Format("15:04:05")
+	lvlF := LevelNames[e.lvl]
 
-	created, _ := os.Create(path)
-	tmp.SetOutput(created, path)
-
-	defer tmp.PanicHandler()
-	return tmp
+	return "[" + tsF + "] " + e.src + ": " + lvlF + ": " + e.msg
 }
 
-// NewLoggerNoFile creates a new Logger with a name and no File.
-func NewLoggerNoFile(name string) *Logger {
-	return &Logger{Name: name}
+// MasterLog represents the main log used in an application, and should only be
+// instantiated once.
+type MasterLog struct {
+	lvl    int
+	stdout io.Writer
 }
 
-// SetVerbose sets the verbosity of the Logger.
-// (doesn't affect file output)
-func (l *Logger) SetVerbose(verbose bool) {
-	l.isVerbose = verbose
+// NewMasterLog is self-explainatory, lvl represents the Entry filter:
+// if an Entry's level is equal to or higher than the MasterLog's level, the
+// Entry will be printed.
+func NewMasterLog(lvl int) *MasterLog {
+	return &MasterLog{lvl, colorable.NewColorableStdout()}
 }
 
-// SetOutput sets the file output.
-func (l *Logger) SetOutput(out *os.File, path string) {
-	l.Output = out
-	l.OutputPath = path
-	l.hasOutput = true
+// SetLevel changes this MasterLog's filter level
+func (m *MasterLog) SetLevel(lvl int) {
+	m.lvl = lvl
 }
 
-func (l *Logger) writeOut(msg string) {
-	if l.hasOutput {
-		_, err := l.Output.Write([]byte(msg + "\n"))
-		if err != nil {
-			l.hasOutput = false
-			l.PrintLn("There was a problem writing to file: ", err,
-				"\n(file output is now disabled)")
-		}
+// Sub returns a named Log
+func (m *MasterLog) Sub(name string) *Log {
+	return &Log{m, name}
+}
+
+// Emit prints an Entry, if it can pass the level filter (see NewMasterLog)
+func (m *MasterLog) Emit(e Entry) {
+	if e.lvl >= m.lvl {
+		clr := LevelColors[e.lvl]
+		full := clr + e.Format() + "\n\033[0m"
+		m.stdout.Write([]byte(full))
 	}
 }
 
-// PanicHandler is a generic panic() handler
-func (l *Logger) PanicHandler() {
-	if r := recover(); r != nil {
-		l.PrintLn("A critical error has occurred and the program must exit:\n", r)
-		if l.hasOutput {
-			l.PrintLn("\nThe log can be found here:", l.OutputPath)
-		}
-		os.Exit(-1)
-	}
+// Log represents a named sub-log of it's MasterLog
+type Log struct {
+	master *MasterLog
+	name   string
 }
 
-// VerboseLn is a Println that only appears if isVerbose is true.
-// (it is still written to the file output)
-func (l *Logger) VerboseLn(a ...interface{}) {
-	msg := fmt.Sprint(a...)
-	if l.isVerbose {
-		fmt.Println(msg)
-	}
-	l.writeOut(msg)
+func (l *Log) emit(ts time.Time, lvl int, msg string) {
+	e := Entry{ts, l.name, lvl, msg}
+	l.master.Emit(e)
 }
 
-// VerboseF is a Printf that only appears if isVerbose is true.
-// (it is still written to the file output)
-func (l *Logger) VerboseF(format string, a ...interface{}) {
-	msg := fmt.Sprintf(format, a...)
-	if l.isVerbose {
-		fmt.Println(msg)
-	}
-	l.writeOut(msg)
+// Sub returns a named sub-Log, with the same MasterLog as this one
+func (l *Log) Sub(name string) *Log {
+	return &Log{l.master, l.name + "." + name}
 }
 
-// PrintLn is a Println that also write to file output.
-func (l *Logger) PrintLn(a ...interface{}) {
-	msg := fmt.Sprint(a...)
-	fmt.Println(msg)
-	l.writeOut(msg)
+// Debug emits a debug-level Entry
+func (l *Log) Debug(msg string) {
+	l.emit(time.Now(), 0, msg)
 }
 
-// PrintF is a Printf that also write to file output.
-func (l *Logger) PrintF(format string, a ...interface{}) {
-	msg := fmt.Sprintf(format, a...)
-	fmt.Println(msg)
-	l.writeOut(msg)
+// Info emits an info-level Entry
+func (l *Log) Info(msg string) {
+	l.emit(time.Now(), 1, msg)
+}
+
+// Warn emits a warn-level Entry
+func (l *Log) Warn(msg string) {
+	l.emit(time.Now(), 2, msg)
+}
+
+// Error emits a error-level Entry
+func (l *Log) Error(msg string) {
+	l.emit(time.Now(), 3, msg)
+}
+
+// Fatal emits a fatal-level Entry
+func (l *Log) Fatal(msg string) {
+	l.emit(time.Now(), 4, msg)
 }

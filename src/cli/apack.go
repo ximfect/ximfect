@@ -12,33 +12,30 @@ import (
 	"ximfect/tool"
 )
 
-func packEffect(t *tool.Tool, a tool.ArgumentList) error {
-	eff, hasEff := a.NamedArgs["effect"]
-
-	if !hasEff {
-		return errors.New(
-			"missing input argument, specify with --effect <id>")
+func packEffect(ctx *tool.Context) error {
+	if len(ctx.Args.PosArgs) < 1 {
+		return errors.New("not enough arguments (want: effect-id)")
 	}
 
-	effName := strings.ToLower(eff.Value)
+	effID := strings.ToLower(ctx.Args.PosArgs[0])
 
-	t.VerboseLn("Loading effect:", effName)
-	effObj, err := effect.LoadFromAppdata(effName)
+	ctx.Log.Debug("Loading effect: " + effID)
+	effObj, err := effect.LoadFromAppdata(effID)
 	if err != nil {
 		return fmt.Errorf(
-			"could not find effect: %s", effName)
+			"could not find effect: %s", effID)
 	}
 
-	outFileName := effName + "-" + effObj.Metadata.Version + ".fx.xpk"
+	outFileName := effID + "-" + effObj.Metadata.Version + ".fx.xpk"
 
-	t.PrintLn("Packaging...")
-	path := environ.AppdataPath("effects", effName)
+	ctx.Log.Debug("Packaging...")
+	path := environ.AppdataPath("effects", effID)
 	raw, err := pack.GetPackedDirectory(path)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Saving to file:", outFileName)
+	ctx.Log.Debug("Saving to file: " + outFileName)
 	file, err := os.Create(outFileName)
 	if err != nil {
 		return err
@@ -48,33 +45,30 @@ func packEffect(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
-func packLib(t *tool.Tool, a tool.ArgumentList) error {
-	lib, hasLib := a.NamedArgs["lib"]
-
-	if !hasLib {
-		return errors.New(
-			"missing input argument, specify with --lib <id>")
+func packLib(ctx *tool.Context) error {
+	if len(ctx.Args.PosArgs) < 1 {
+		return errors.New("not enough arguments (want: lib-id)")
 	}
 
-	libName := strings.ToLower(lib.Value)
+	libID := strings.ToLower(ctx.Args.PosArgs[0])
 
-	t.VerboseLn("Loading lib:", libName)
-	libObj, err := libs.LoadFromAppdata(libName)
+	ctx.Log.Debug("Loading lib: " + libID)
+	libObj, err := libs.LoadFromAppdata(libID)
 	if err != nil {
 		return fmt.Errorf(
-			"could not find lib: %s", libName)
+			"could not find lib: %s", libID)
 	}
 
-	outFileName := libName + "-" + libObj.Metadata.Version + ".lib.xpk"
+	outFileName := libID + "-" + libObj.Metadata.Version + ".lib.xpk"
 
-	t.PrintLn("Packaging...")
-	path := environ.AppdataPath("libs", libName)
+	ctx.Log.Debug("Packaging...")
+	path := environ.AppdataPath("libs", libID)
 	raw, err := pack.GetPackedDirectory(path)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Saving to file:", outFileName)
+	ctx.Log.Debug("Saving to file: " + outFileName)
 	file, err := os.Create(outFileName)
 	if err != nil {
 		return err
@@ -84,31 +78,28 @@ func packLib(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
-func unpackEffect(t *tool.Tool, a tool.ArgumentList) error {
-	file, hasFile := a.NamedArgs["file"]
-
-	if !hasFile {
-		return errors.New(
-			"missing input file, specify with --file <filename>")
+func unpackEffect(ctx *tool.Context) error {
+	if len(ctx.Args.PosArgs) < 1 {
+		return errors.New("not enough arguments (want: package)")
 	}
 
-	inFileName := file.Value
+	packageFilename := ctx.Args.PosArgs[0]
 
-	t.VerboseLn("Reading file:", inFileName)
-	raw, err := environ.LoadRawfile(inFileName)
+	ctx.Log.Debug("Reading file: " + packageFilename)
+	raw, err := environ.LoadRawfile(packageFilename)
 	if err != nil {
 		return err
 	}
 	//fmt.Println(raw)
 
-	t.VerboseLn("Parsing package...")
+	ctx.Log.Debug("Parsing package...")
 	pkg, err := pack.GetPackage(raw)
 	//fmt.Println(pkg)
 	if err != nil {
 		return err
 	}
 
-	t.PrintLn("Unpacking...")
+	ctx.Log.Debug("Unpacking...")
 	err = pack.UnpackTo(pkg, environ.AppdataPath("effects", pkg.Name))
 	if err != nil {
 		return err
@@ -117,29 +108,26 @@ func unpackEffect(t *tool.Tool, a tool.ArgumentList) error {
 	return nil
 }
 
-func unpackLib(t *tool.Tool, a tool.ArgumentList) error {
-	file, hasFile := a.NamedArgs["file"]
-
-	if !hasFile {
-		return errors.New(
-			"missing input file, specify with --file <filename>")
+func unpackLib(ctx *tool.Context) error {
+	if len(ctx.Args.PosArgs) < 1 {
+		return errors.New("not enough arguments (want: package)")
 	}
 
-	inFileName := file.Value
+	packageFilename := ctx.Args.PosArgs[0]
 
-	t.VerboseLn("Reading file:", inFileName)
-	raw, err := environ.LoadRawfile(inFileName)
+	ctx.Log.Debug("Reading file: " + packageFilename)
+	raw, err := environ.LoadRawfile(packageFilename)
 	if err != nil {
 		return err
 	}
 
-	t.VerboseLn("Parsing package...")
+	ctx.Log.Debug("Parsing package...")
 	pkg, err := pack.GetPackage(raw)
 	if err != nil {
 		return err
 	}
 
-	t.PrintLn("Unpacking...")
+	ctx.Log.Debug("Unpacking...")
 	err = pack.UnpackTo(pkg, environ.AppdataPath("libs", pkg.Name))
 	if err != nil {
 		return err
@@ -149,25 +137,38 @@ func unpackLib(t *tool.Tool, a tool.ArgumentList) error {
 }
 
 func init() {
-	gTool.VerboseLn("Loading actions from apack...")
-	gTool.AddActionQuick(
-		"pack-effect",
-		"Packs an effect",
-		"--effect (id)",
-		packEffect)
-	gTool.AddActionQuick(
-		"pack-lib",
-		"Packs a lib",
-		"--lib (id)",
-		packLib)
-	gTool.AddActionQuick(
-		"unpack-effect",
-		"Unpacks an effect",
-		"--effect (id)",
-		unpackEffect)
-	gTool.AddActionQuick(
-		"unpack-lib",
-		"Unpacks a lib",
-		"--lib (id)",
-		unpackLib)
+	MasterTool.ToolLog.Debug("Loading actions from apack...")
+
+	packEffectAction := &tool.Action{
+		packEffect,
+		"Packs an effect.",
+		tool.ArgumentList{
+			tool.ArgSlice{"effect-id"},
+			tool.ArgMap{}}}
+
+	packLibAction := &tool.Action{
+		packLib,
+		"Packs a lib.",
+		tool.ArgumentList{
+			tool.ArgSlice{"lib-id"},
+			tool.ArgMap{}}}
+
+	unpackEffectAction := &tool.Action{
+		unpackEffect,
+		"Unpacks an effect.",
+		tool.ArgumentList{
+			tool.ArgSlice{"package"},
+			tool.ArgMap{}}}
+
+	unpackLibAction := &tool.Action{
+		unpackLib,
+		"Unpacks a lib.",
+		tool.ArgumentList{
+			tool.ArgSlice{"package"},
+			tool.ArgMap{}}}
+
+	MasterTool.AddAction("pack-effect", packEffectAction)
+	MasterTool.AddAction("pack-lib", packLibAction)
+	MasterTool.AddAction("unpack-effect", unpackEffectAction)
+	MasterTool.AddAction("unpack-lib", unpackLibAction)
 }

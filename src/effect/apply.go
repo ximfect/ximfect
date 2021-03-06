@@ -3,16 +3,17 @@
 package effect
 
 import (
-	lua "github.com/yuin/gopher-lua"
 	"strings"
 	"ximfect/libs"
 	"ximfect/tool"
+
+	lua "github.com/yuin/gopher-lua"
 
 	"github.com/ximfect/ximgy"
 )
 
 // PrepareVM adds all the API functions to a VM.
-func PrepareVM(vm *lua.LState, img *ximgy.Image, args tool.ArgumentList){
+func PrepareVM(vm *lua.LState, img *ximgy.Image, args tool.ArgumentList) {
 	size := img.Size
 
 	// include()
@@ -73,17 +74,18 @@ func PrepareVM(vm *lua.LState, img *ximgy.Image, args tool.ArgumentList){
 }
 
 // Apply runs the given Effect on the given Image with an empty VM.
-func Apply(fx *Effect, img *ximgy.Image, tool *tool.Tool, args tool.ArgumentList) error {
-	tool.VerboseLn(" - Creating VM state...")
+func Apply(fx *Effect, img *ximgy.Image, ctx *tool.Context) error {
+	log := ctx.Log.Sub("Apply")
+	log.Debug("Creating VM state...")
 	vm := lua.NewState()
 	defer vm.Close()
-	tool.VerboseLn(" - Loading effect...")
+	log.Debug("Loading effect...")
 	err := fx.Load(vm)
 	if err != nil {
 		return err
 	}
-	tool.VerboseLn(" - Preparing VM...")
-	PrepareVM(vm, img, args)
-	tool.VerboseLn(" - Working...")
+	log.Debug("Preparing VM...")
+	PrepareVM(vm, img, ctx.Args)
+	log.Debug("Working...")
 	return img.Iterate(fx.Run)
 }

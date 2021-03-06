@@ -17,7 +17,7 @@ type Argument struct {
 type ArgMap map[string]Argument
 
 // ArgSlice is an Argument slice.
-type ArgSlice []Argument
+type ArgSlice []string
 
 // ArgumentList turns a slice of strings into usable Arguments
 type ArgumentList struct {
@@ -25,19 +25,48 @@ type ArgumentList struct {
 	NamedArgs ArgMap
 }
 
-// GetArgv reads os.Args and turns it into an ArgMap.
+// FormatUsage formats this ArgumentList as if it was usage.
+func (l ArgumentList) FormatUsage() string {
+	out := ""
+	for _, a := range l.PosArgs {
+		if strings.HasSuffix(a, "?") {
+			out += "[" + a[0:len(a)-1] + "] "
+		} else {
+			out += "<" + a + "> "
+		}
+	}
+
+	for n, a := range l.NamedArgs {
+		if a.IsValue {
+			if a.BoolValue {
+				out += "<--" + n + " (" + a.Value + ")] "
+			} else {
+				out += "[--" + n + " (" + a.Value + ")] "
+			}
+		} else {
+			if a.BoolValue {
+				out += "<--" + n + "> "
+			} else {
+				out += "[--" + n + "] "
+			}
+		}
+	}
+
+	return strings.TrimSpace(out)
+}
+
+// GetArgv reads the input string slice and turns it into an ArgumentList.
 func GetArgv(src []string) ArgumentList {
-	src = src[1:]
 	src = append(src, "--")
 	// Get positional arguments
-	posArgs := []Argument{}
+	posArgs := []string{}
 	var namedArgsStart int
 	for i, arg := range src {
 		if strings.HasPrefix(arg, "--") {
 			namedArgsStart = i
 			break
 		}
-		posArgs = append(posArgs, Argument{true, arg, true})
+		posArgs = append(posArgs, arg)
 	}
 	// Get named arguments
 	namedArgs := make(ArgMap)
