@@ -1,6 +1,7 @@
 package tool
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -71,12 +72,12 @@ func (t *Tool) GetActionList() []string {
 }
 
 // RunAction runs an action in this Tool
-func (t *Tool) RunAction(name string, args ArgumentList) {
+func (t *Tool) RunAction(name string, args ArgumentList) error {
 	t.ToolLog.Debug("Running action: " + name)
 	action, exists := t.actions[name]
 	if !exists {
 		t.ToolLog.Error("unknown action: " + name)
-		return
+		return errors.New("unknown action: " + name)
 	}
 	log := t.MasterLog.Sub("Action[" + name + "]")
 	ctx := &Context{t, args, log}
@@ -84,4 +85,5 @@ func (t *Tool) RunAction(name string, args ArgumentList) {
 	if err != nil {
 		log.Error(err.Error())
 	}
+	return err
 }
