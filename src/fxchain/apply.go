@@ -2,7 +2,7 @@ package fxchain
 
 import (
 	"fmt"
-	"ximfect/effect"
+	"ximfect/vm"
 	"ximfect/tool"
 
 	"github.com/ximfect/ximgy"
@@ -17,7 +17,7 @@ func Apply(src string, img *ximgy.Image, ctx *tool.Context) (*ximgy.Image, error
 	for i, pair := range chain {
 		log.Debug(fmt.Sprintf("[%d/%d] Effect `%s`:\n", i, total, pair.effect))
 		log.Debug("Loading effect...")
-		eff, err := effect.LoadFromAppdata(pair.effect)
+		eff, err := vm.LoadAppdataEffect(pair.effect)
 		if err != nil {
 			return nil, err
 		}
@@ -27,7 +27,7 @@ func Apply(src string, img *ximgy.Image, ctx *tool.Context) (*ximgy.Image, error
 			a.NamedArgs[k] = tool.Argument{IsValue: true, Value: v, BoolValue: true}
 		}
 		log.Debug("Applying effect...")
-		err = effect.Apply(eff, img, ctx)
+		err = eff.Apply(img, ctx)
 		if err != nil {
 			return nil, err
 		}

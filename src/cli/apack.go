@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"ximfect/effect"
 	"ximfect/environ"
-	"ximfect/libs"
+	"ximfect/vm"
 	"ximfect/pack"
 	"ximfect/tool"
 )
@@ -20,7 +19,7 @@ func packEffect(ctx *tool.Context) error {
 	effID := strings.ToLower(ctx.Args.PosArgs[0])
 
 	ctx.Log.Debug("Loading effect: " + effID)
-	effObj, err := effect.LoadFromAppdata(effID)
+	effObj, err := vm.LoadAppdataEffect(effID)
 	if err != nil {
 		return fmt.Errorf(
 			"could not find effect: %s", effID)
@@ -53,7 +52,7 @@ func packLib(ctx *tool.Context) error {
 	libID := strings.ToLower(ctx.Args.PosArgs[0])
 
 	ctx.Log.Debug("Loading lib: " + libID)
-	libObj, err := libs.LoadFromAppdata(libID)
+	libObj, err := vm.LoadAppdataLib(libID)
 	if err != nil {
 		return fmt.Errorf(
 			"could not find lib: %s", libID)

@@ -1,6 +1,14 @@
 package pack
 
-import "errors"
+import (
+	// "bytes"
+	// "compress/gzip"
+	"errors"
+)
+
+const (
+	filehdr = "XIMPKG"
+)
 
 type fileMap map[string][]byte
 
@@ -10,10 +18,22 @@ type Package struct {
 	Files fileMap
 }
 
-func GetPackage(src []byte) (*Package, error) {
-	if !(src[0] == 'X' && src[1] == 'I' &&
-		src[2] == 'M' && src[3] == 'P' &&
-		src[4] == 'K' && src[5] == 'G') {
+// GetPackage reads and decodes a Package
+func GetPackage(raw []byte) (*Package, error) {
+	/*
+	r, err := gzip.NewReader(bytes.NewBuffer(raw))
+	if err != nil {
+		return nil, err
+	}
+	src := make([]byte, 0xFFFF)
+	n, err := r.Read(src)
+	if err != nil {
+		return nil, err
+	}
+	src = src[0:n]
+	*/
+	src := raw
+	if string(src[0:6]) != filehdr {
 		return nil, errors.New("missing file header")
 	}
 	var (

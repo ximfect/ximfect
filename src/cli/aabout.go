@@ -4,8 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"ximfect/effect"
-	"ximfect/libs"
+	"ximfect/vm"
 	"ximfect/tool"
 )
 
@@ -28,7 +27,7 @@ func describe(ctx *tool.Context) error {
 
 	if hasEff {
 		ctx.Log.Debug("Loading effect: " + effName)
-		fx, err := effect.LoadFromAppdata(effName)
+		fx, err := vm.LoadAppdataEffect(effName)
 		if err != nil {
 			return err
 		}
@@ -45,7 +44,7 @@ func describe(ctx *tool.Context) error {
 		}
 	} else if hasLib {
 		ctx.Log.Debug("Loading lib: " + libName)
-		library, err := libs.LoadFromAppdata(libName)
+		library, err := vm.LoadAppdataLib(libName)
 		if err != nil {
 			return err
 		}

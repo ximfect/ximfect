@@ -20,31 +20,38 @@ func main() {
 		args tool.ArgumentList
 	)
 
-	if strings.HasSuffix(os.Args[1], ".xpk") {
-		t.ToolLog.Debug("is package")
-		args = tool.ArgumentList{
-			PosArgs:   tool.ArgSlice{os.Args[1]},
-			NamedArgs: tool.ArgMap{}}
-		if strings.HasSuffix(os.Args[1], ".fx.xpk") {
-			err = t.RunAction("unpack-effect", args)
-		} else if strings.HasSuffix(os.Args[1], ".lib.xpk") {
-			err = t.RunAction("unpack-lib", args)
+	if len(os.Args) > 1 {
+		if strings.HasSuffix(os.Args[1], ".xpk") {
+			t.ToolLog.Debug("is package")
+			args = tool.ArgumentList{
+				PosArgs:   tool.ArgSlice{os.Args[1]},
+				NamedArgs: tool.ArgMap{}}
+			if strings.HasSuffix(os.Args[1], ".fx.xpk") {
+				act = "unpack-effect"
+			} else if strings.HasSuffix(os.Args[1], ".lib.xpk") {
+				act = "unpack-lib"
+			} else {
+				t.ToolLog.Error("unknown package type: " + os.Args[1])
+				err = errors.New("unknown package type: " + os.Args[1])
+			}
 		} else {
-			t.ToolLog.Error("unknown package type: " + os.Args[1])
-			err = errors.New("unknown package type: " + os.Args[1])
-		}
-	} else {
-		t.ToolLog.Debug("is NOT package")
-		args = tool.GetArgv(os.Args[2:])
-		if len(os.Args) == 1 {
-			act = "help"
-		} else {
+			if len(os.Args) > 2 {
+				args = tool.GetArgv(os.Args[2:])
+			} else {
+				args = tool.ArgumentList{
+					PosArgs:   []string{},
+					NamedArgs: map[string]tool.Argument{}}
+			}
 			act = os.Args[1]
 		}
-		err = t.RunAction(act, args)
+	} else {
+		act = "help"
 	}
 
 	if err != nil {
+		os.Exit(1)
+	}
+	if err = t.RunAction(act, args); err != nil {
 		os.Exit(1)
 	}
 }

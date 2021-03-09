@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"ximfect/effect"
+	"ximfect/vm"
 	"ximfect/environ"
 	"ximfect/fxchain"
 	"ximfect/tool"
@@ -26,7 +26,7 @@ func applyEffect(ctx *tool.Context) error {
 	outputFilename := ctx.Args.PosArgs[2]
 
 	ctx.Log.Debug("Loading effect: " + effID)
-	fx, err := effect.LoadFromAppdata(effID)
+	fx, err := vm.LoadAppdataEffect(effID)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func applyEffect(ctx *tool.Context) error {
 	}
 
 	ctx.Log.Debug("Applying effect: " + effID)
-	err = effect.Apply(fx, image, ctx)
+	err = fx.Apply(image, ctx)
 	if err != nil {
 		return err
 	}
