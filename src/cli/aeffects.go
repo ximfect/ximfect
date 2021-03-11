@@ -53,7 +53,7 @@ func applyEffect(ctx *tool.Context) error {
 }
 
 const (
-	scriptTemplate = "function effect(x, y, pixel) {\n	// write your code here\n	return {r: pixel.r, g: pixel.g, b: pixel.b, a: pixel.a};\n}\n"
+	scriptTemplate = "function effect(pixel)\n    -- your code here\n    return {r=pixel[\"r\"], g=pixel[\"g\"], b=pixel[\"b\"], a=pixel[\"a\"]}\nend\n"
 	metaTemplate   = "name: Empty Effect\nversion: 1.0.0\nauthor: unknown <>\ndesc: ximfect generated empty effect\n"
 )
 

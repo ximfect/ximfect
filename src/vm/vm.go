@@ -2,8 +2,10 @@ package vm
 
 import (
 	"errors"
-
+	"fmt"
+	"math/rand"
 	"ximfect/tool"
+	"ximfect/environ"
 
 	lua "github.com/yuin/gopher-lua"
 
@@ -46,10 +48,10 @@ func vmAt(img *ximgy.Image) func(L *lua.LState) int {
 
 		pixel := img.At(x, y)
 		out := L.CreateTable(4, 1)
-		out.RawSet(lua.LString("r"), lua.LNumber(pixel.R))
-		out.RawSet(lua.LString("g"), lua.LNumber(pixel.G))
-		out.RawSet(lua.LString("b"), lua.LNumber(pixel.B))
-		out.RawSet(lua.LString("a"), lua.LNumber(pixel.A))
+		out.RawSetString("r", lua.LNumber(pixel.R))
+		out.RawSetString("g", lua.LNumber(pixel.G))
+		out.RawSetString("b", lua.LNumber(pixel.B))
+		out.RawSetString("a", lua.LNumber(pixel.A))
 
 		L.Push(out)
 		return 1
@@ -59,8 +61,8 @@ func vmAt(img *ximgy.Image) func(L *lua.LState) int {
 func vmSize(img *ximgy.Image) func(L *lua.LState) int {
 	return (func(L *lua.LState) int {
 		out := L.CreateTable(2, 1)
-		out.RawSet(lua.LString("x"), lua.LNumber(img.Size.X))
-		out.RawSet(lua.LString("y"), lua.LNumber(img.Size.Y))
+		out.RawSetString("x", lua.LNumber(img.Size.X))
+		out.RawSetString("y", lua.LNumber(img.Size.Y))
 		L.Push(out)
 		return 1
 	})
@@ -85,6 +87,33 @@ end:
 	return 0
 }
 
+func vmRandom(L *lua.LState) int {
+	n := rand.Float32()
+	nV := lua.LNumber(n)
+	L.Push(nV)
+	return 1
+}
+
+func vmRandInt(L *lua.LState) int {
+	endRaw := L.Get(1)
+	if endRaw.Type() != lua.LTNumber {
+		return 0
+	}
+	end := int(endRaw.(lua.LNumber))
+	L.Push(lua.LNumber(rand.Intn(end)))
+	return 1
+}
+
+func vmInspect(L *lua.LState) int {
+	val := L.Get(1)
+	fmt.Println(val)
+	if val.Type() == lua.LTTable {
+		t := val.(*lua.LTable)
+		fmt.Println(*t)
+	}
+	return 0
+}
+
 func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
 	log := ctx.Log.Sub("VM")
 
@@ -92,7 +121,7 @@ func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
 	vm := lua.NewState()
 
 	log.Debug("Adding effect...")
-	err := vm.DoString(e.source)
+	err := vm.DoFile(environ.Combine(e.Dir, "effect.lua"))
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +137,19 @@ func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
 	vm.SetGlobal("at", vm.NewFunction(vmAt(img)))
 	vm.SetGlobal("size", vm.NewFunction(vmSize(img)))
 	vm.SetGlobal("import", vm.NewFunction(vmImport))
+	vm.SetGlobal("random", vm.NewFunction(vmRandom))
+	vm.SetGlobal("randint", vm.NewFunction(vmRandInt))
+	vm.SetGlobal("inspect", vm.NewFunction(vmInspect))
+
+	if len(e.Metadata.Preload) > 0 {
+		log.Debug("Applying preload...")
+		for _, file := range e.Metadata.Preload {
+			err = vm.DoFile(environ.Combine(e.Dir, file))
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
 	
 	log.Debug("Done!")
 	return vm, nil

@@ -14,39 +14,27 @@ import (
 
 // LoadEffect loads an Effect from the given directory with the given id.
 func LoadEffect(path, id string) (*Effect, error) {
-	dir := environ.Combine(path, id)
-	metaPath := environ.Combine(dir, "effect.yml")
-	scriptPath := environ.Combine(dir, "effect.lua")
+	var err error
 
-	var (
-		err         error
-		metaSource  *os.File
-		metaDecoder *yaml.Decoder
-		meta        *EffectMetadata = new(EffectMetadata)
-		script      string
-	)
+	dir := environ.Combine(path, id)
+	meta := new(EffectMetadata)
 
 	// Populate ID as it's not present in effect.yml
 	meta.ID = id
 	// Open meta file
-	metaSource, err = os.Open(metaPath)
+	metaSource, err := os.Open(environ.Combine(dir, "effect.yml"))
 	if err != nil {
 		return nil, fmt.Errorf("error while loading metadata: %v", err)
 	}
-	// Load script file
-	script, err = environ.LoadTextfile(scriptPath)
-	if err != nil {
-		return nil, fmt.Errorf("error while loading script: %v", err)
-	}
 	// Create meta decoder & read meta
-	metaDecoder = yaml.NewDecoder(metaSource)
+	metaDecoder := yaml.NewDecoder(metaSource)
 	err = metaDecoder.Decode(meta)
 	if err != nil {
 		return nil, fmt.Errorf("error while reading metadata: %v", err)
 	}
 
 	// Return loaded effect
-	return NewEffect(meta, script), nil
+	return NewEffect(meta, dir), nil
 }
 
 // LoadAppdataEffect does what Load does, but path is always APPDATA
@@ -74,24 +62,24 @@ func LoadLib(path, id string) (*Lib, error) {
 	// Open metadata file
 	metaSource, err = os.Open(metaPath)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading metadata: %v", err)
+		return nil, fmt.Errorf("error loading metadata: %v", err)
 	}
 	// Create decoder & read meta
 	metaDecoder = yaml.NewDecoder(metaSource)
 	err = metaDecoder.Decode(meta)
 	if err != nil {
-		return nil, fmt.Errorf("erro while reding metadata: %v", err)
+		return nil, fmt.Errorf("error reding metadata: %v", err)
 	}
 	// Get list of all files in lib's folder
 	filesAll, err = ioutil.ReadDir(dir)
 	if err != nil {
-		return nil, fmt.Errorf("error while discovering library files: %v",
+		return nil, fmt.Errorf("error discovering library files: %v",
 			err)
 	}
-	// Filter files to only javascript
+	// Filter files to only scripts
 	for _, file := range filesAll {
 		fileName = file.Name()
-		if strings.HasSuffix(fileName, ".js") {
+		if strings.HasSuffix(fileName, ".lua") {
 			filesFiltered = append(filesFiltered, fileName)
 		}
 	}

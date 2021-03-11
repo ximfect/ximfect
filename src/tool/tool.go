@@ -25,7 +25,7 @@ func NewTool(name, desc, version string) *Tool {
 
 // PrintTitle prints the name and version of this Tool
 func (t *Tool) PrintTitle() {
-	fmt.Println(t.Name, t.Version)
+	fmt.Println(t.Name, Version, "build", Build)
 }
 
 // AddAction adds an action to this Tool

@@ -1,12 +1,12 @@
 @echo off
-echo :: Generating version
-py gen-build-ver.py
+echo Generate src/tool/const.go
+python .\generate_const.py
 cd ..\src
-echo :: Building
+echo Build
 go build
-echo :: Deleting old executable
+if NOT ERRORLEVEL 0 exit %ERRORLEVEL%
+echo Delete old executable
 del ..\testing\ximfect.exe
-echo :: Moving new executable
+echo Move new executable
 move .\ximfect.exe ..\testing > NUL
-echo :: DONE
 cd ..\testing

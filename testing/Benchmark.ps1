@@ -1,4 +1,4 @@
-.\ximfect.exe version --silent
+.\ximfect.exe about-tool
 
 $amt = 15
 $total = 0
@@ -9,7 +9,7 @@ for($i = 0; $i -lt $amt; $i++)
 {
 	Write-Output "--------------------"
 	Write-Output ("Benchmark {0}" -f ($i + 1))
-	$time = Measure-Command {.\ximfect.exe apply --effect nored	--file test.png --out test-nored.png}
+	$time = Measure-Command {.\ximfect.exe apply-effect discord_red.png blur discord_red_blur.png}
 	if($time.TotalSeconds -gt $max)
 	{
 		$max = $time.TotalSeconds

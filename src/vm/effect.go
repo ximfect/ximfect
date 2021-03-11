@@ -24,89 +24,46 @@ type EffectMetadata struct {
 // Effect represents an effect that can be applied to an Image
 type Effect struct {
 	Metadata *EffectMetadata
-	source   string
+	Dir      string
 }
 
-// NewEffect returns an Effect constructed from the given source and metadata
-func NewEffect(meta *EffectMetadata, src string) *Effect {
-	tmp := new(Effect)
-	tmp.Metadata = meta
-	tmp.SetSource(src)
-	return tmp
+// NewEffect returns an Effect constructed from the given dir and metadata
+func NewEffect(meta *EffectMetadata, dir string) *Effect {
+	return &Effect{meta, dir}
 }
 
-// SetSource sets the source for the effect
-func (e *Effect) SetSource(src string) {
-	e.source = src
-}
-
-func (e *Effect) run(img *ximgy.Image, vm *lua.LState) func(pixel ximgy.Pixel) (color.RGBA, error) {
-	return (func(pixel ximgy.Pixel) (color.RGBA, error) {
-		def := color.RGBA{}
-		inTable := vm.CreateTable(6, 1)
-		inTable.RawSet(lua.LString("r"), lua.LNumber(pixel.R))
-		inTable.RawSet(lua.LString("g"), lua.LNumber(pixel.G))
-		inTable.RawSet(lua.LString("b"), lua.LNumber(pixel.B))
-		inTable.RawSet(lua.LString("a"), lua.LNumber(pixel.A))
-		inTable.RawSet(lua.LString("x"), lua.LNumber(pixel.X))
-		inTable.RawSet(lua.LString("y"), lua.LNumber(pixel.Y))
-		err := vm.CallByParam(lua.P{
-			Fn:      vm.GetGlobal("effect"),
-			NRet:    1,
-			Protect: true,
-		}, inTable)
-		if err != nil {
-			return def, err
+func (e *Effect) run(img *ximgy.Image, vm *lua.LState, matrix [][][]lua.LValue) error {
+	inTable := vm.CreateTable(6, 1)
+	for x := 0; x < img.Size.X; x++ {
+		for y := 0; y < img.Size.Y; y++ {
+			pixel := img.At(x, y)
+			inTable.RawSetString("r", lua.LNumber(pixel.R))
+			inTable.RawSetString("g", lua.LNumber(pixel.G))
+			inTable.RawSetString("b", lua.LNumber(pixel.B))
+			inTable.RawSetString("a", lua.LNumber(pixel.A))
+			inTable.RawSetString("x", lua.LNumber(x))
+			inTable.RawSetString("y", lua.LNumber(y))
+			err := vm.CallByParam(lua.P{
+				Fn:      vm.GetGlobal("effect"),
+				NRet:    1,
+				Protect: true,
+			}, inTable)
+			if err != nil {
+				return err
+			}
+			ret := vm.Get(-1)
+			vm.Pop(1)
+			tbl, ok := ret.(*lua.LTable)
+			if !ok {
+				return errors.New("could not convert return value to table")
+			}
+			matrix[x][y][0] = tbl.RawGetString("r")
+			matrix[x][y][1] = tbl.RawGetString("g")
+			matrix[x][y][2] = tbl.RawGetString("b")
+			matrix[x][y][3] = tbl.RawGetString("a")
 		}
-		ret := vm.Get(-1)
-		vm.Pop(1)
-		tbl, ok := ret.(*lua.LTable)
-		if !ok {
-			return def, errors.New("could not convert return value to table")
-		}
-
-		redRaw := tbl.RawGet(lua.LString("r"))
-		if redRaw.Type() == lua.LTNil {
-			return def, errors.New("returned red value is nil")
-		}
-		redNum, ok := redRaw.(lua.LNumber)
-		if !ok {
-			return def, errors.New("returned red value is not a number")
-		}
-		red := uint8(redNum)
-
-		greenRaw := tbl.RawGet(lua.LString("g"))
-		if greenRaw.Type() == lua.LTNil {
-			return def, errors.New("returned green value is nil")
-		}
-		greenNum, ok := greenRaw.(lua.LNumber)
-		if !ok {
-			return def, errors.New("returned green value is not a number")
-		}
-		green := uint8(greenNum)
-
-		blueRaw := tbl.RawGet(lua.LString("b"))
-		if blueRaw.Type() == lua.LTNil {
-			return def, errors.New("returned blue value is nil")
-		}
-		blueNum, ok := blueRaw.(lua.LNumber)
-		if !ok {
-			return def, errors.New("returned blue value is not a number")
-		}
-		blue := uint8(blueNum)
-
-		alphaRaw := tbl.RawGet(lua.LString("a"))
-		if alphaRaw.Type() == lua.LTNil {
-			return def, errors.New("returned alpha value is nil")
-		}
-		alphaNum, ok := alphaRaw.(lua.LNumber)
-		if !ok {
-			return def, errors.New("returned alpha value is not a number")
-		}
-		alpha := uint8(alphaNum)
-
-		return color.RGBA{R: red, G: green, B: blue, A: alpha}, nil
-	})
+	}
+	return nil
 }
 
 // Apply applies this effect to the given Image
@@ -119,10 +76,44 @@ func (e *Effect) Apply(img *ximgy.Image, ctx *tool.Context) error {
 		return err
 	}
 
-	log.Debug("Iterating image...")
-	err = img.Iterate(e.run(img, vm))
+	log.Debug("Running effect...")
+	matrix := [][][]lua.LValue{}
+	for x := 0; x < img.Size.X; x++ {
+		matrix = append(matrix, [][]lua.LValue{})
+		for y := 0; y < img.Size.Y; y++ {
+			matrix[x] = append(matrix[x], []lua.LValue{nil, nil, nil, nil})
+		}
+	}
+	err = e.run(img, vm, matrix)
 	if err != nil {
 		return err
+	}
+
+	log.Debug("Applying changes...")
+	for x := 0; x < img.Size.X; x++ {
+		for y := 0; y < img.Size.Y; y++ {
+			rRaw := matrix[x][y][0]
+			gRaw := matrix[x][y][1]
+			bRaw := matrix[x][y][2]
+			aRaw := matrix[x][y][3]
+			if rRaw.Type() != lua.LTNumber {
+				return errors.New("red value is not a number")
+			}
+			if gRaw.Type() != lua.LTNumber {
+				return errors.New("green value is not a number")
+			}
+			if bRaw.Type() != lua.LTNumber {
+				return errors.New("blue value is not a number")
+			}
+			if aRaw.Type() != lua.LTNumber {
+				return errors.New("alpha value is not a number")
+			}
+			r := uint8(rRaw.(lua.LNumber))
+			g := uint8(gRaw.(lua.LNumber))
+			b := uint8(bRaw.(lua.LNumber))
+			a := uint8(aRaw.(lua.LNumber))
+			img.Set(x, y, color.RGBA{r,g,b,a})
+		}
 	}
 
 	log.Debug("Done!")
