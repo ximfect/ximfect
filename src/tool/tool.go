@@ -56,6 +56,20 @@ func (t *Tool) RemAction(name string) {
 func (t *Tool) GetAction(name string) (*Action, bool) {
 	action, exists := t.actions[name]
 	if !exists {
+		var found *Action
+		isFound := false
+		for _, a := range t.actions {
+			for _, n := range a.Aliases {
+				if n == name {
+					isFound = true
+					found = a
+					break
+				}
+			}
+		}
+		if isFound {
+			return found, true
+		}
 		t.ToolLog.Warn("Attempt to get inexsistent action: " + name)
 		return nil, false
 	}
@@ -74,7 +88,7 @@ func (t *Tool) GetActionList() []string {
 // RunAction runs an action in this Tool
 func (t *Tool) RunAction(name string, args ArgumentList) error {
 	t.ToolLog.Debug("Running action: " + name)
-	action, exists := t.actions[name]
+	action, exists := t.GetAction(name)
 	if !exists {
 		t.ToolLog.Error("unknown action: " + name)
 		return errors.New("unknown action: " + name)

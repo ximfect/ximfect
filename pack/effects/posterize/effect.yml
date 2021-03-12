@@ -1,0 +1,6 @@
+name: Posterize
+version: 1.0.0
+author: qeaml <qeaml@pm.me>
+desc: Reduce the color bit-depth to any amount.
+preload:
+  - ramp.lua

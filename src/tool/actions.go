@@ -12,9 +12,10 @@ type ActionFunc func(*Context) error
 
 // Action represents a Tool's action
 type Action struct {
-	Func  ActionFunc
-	Desc  string
-	Usage ArgumentList
+	Func    ActionFunc
+	Desc    string
+	Usage   ArgumentList
+	Aliases []string
 }
 
 // ActionMap is a string->Action map

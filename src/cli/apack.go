@@ -143,28 +143,32 @@ func init() {
 		"Packs an effect.",
 		tool.ArgumentList{
 			tool.ArgSlice{"effect-id"},
-			tool.ArgMap{}}}
+			tool.ArgMap{}},
+		[]string{"pe"}}
 
 	packLibAction := &tool.Action{
 		packLib,
 		"Packs a lib.",
 		tool.ArgumentList{
 			tool.ArgSlice{"lib-id"},
-			tool.ArgMap{}}}
+			tool.ArgMap{}},
+		[]string{"pl"}}
 
 	unpackEffectAction := &tool.Action{
 		unpackEffect,
 		"Unpacks an effect.",
 		tool.ArgumentList{
 			tool.ArgSlice{"package"},
-			tool.ArgMap{}}}
+			tool.ArgMap{}},
+		[]string{"upe"}}
 
 	unpackLibAction := &tool.Action{
 		unpackLib,
 		"Unpacks a lib.",
 		tool.ArgumentList{
 			tool.ArgSlice{"package"},
-			tool.ArgMap{}}}
+			tool.ArgMap{}},
+		[]string{"upl"}}
 
 	MasterTool.AddAction("pack-effect", packEffectAction)
 	MasterTool.AddAction("pack-lib", packLibAction)

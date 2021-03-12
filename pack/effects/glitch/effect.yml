@@ -1,0 +1,6 @@
+name: Glitch
+version: 1.0.0
+author: qeaml <qeaml@pm.me>
+desc: glitches the image
+preload: 
+  - offsetmap.lua

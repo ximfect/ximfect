@@ -1,6 +1,0 @@
-name: Offset
-version: 2.0.0
-author: qeaml <qeaml@pm.me>
-desc: Offset the image by 1/4 it's vertical/horizontal size.
-preload:
-  - setsize.lua

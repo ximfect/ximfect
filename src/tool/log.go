@@ -13,7 +13,7 @@ var LevelNames = []string{
 
 // LevelColors holds ANSI color codes for the different Entry levels.
 var LevelColors = []string{
-	"\033[0m", "\033[0m", "\033[0;33m", "\033[0;31m", "\033[41m"}
+	"\033[0;90m", "\033[0m", "\033[0;33m", "\033[0;31m", "\033[41m"}
 
 // Entry represents an entry in a Log.
 type Entry struct {

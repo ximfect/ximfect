@@ -173,14 +173,16 @@ func init() {
 		"Applies an effect to an image.",
 		tool.ArgumentList{
 			tool.ArgSlice{"image", "effect-id", "output"},
-			tool.ArgMap{}}}
+			tool.ArgMap{}},
+		[]string{"ae"}}
 
 	applyChainAction := &tool.Action{
 		applyChain,
 		"Applies an effect chain to an image.",
 		tool.ArgumentList{
 			tool.ArgSlice{"image", "fx-chain", "output"},
-			tool.ArgMap{}}}
+			tool.ArgMap{}},
+		[]string{"afc"}}
 
 	initEffectAction := &tool.Action{
 		initEffect,
@@ -188,14 +190,16 @@ func init() {
 		tool.ArgumentList{
 			tool.ArgSlice{"effect-id"},
 			tool.ArgMap{
-				"no-template": tool.Argument{false, "generate template?", false}}}}
+				"no-template": tool.Argument{false, "generate template?", false}}},
+		[]string{"ie"}}
 
 	genImageAction := &tool.Action{
 		genImage,
 		"Generates an image.",
 		tool.ArgumentList{
 			tool.ArgSlice{"output"},
-			tool.ArgMap{}}}
+			tool.ArgMap{}},
+		[]string{"gi"}}
 
 	MasterTool.AddAction("apply-effect", applyEffectAction)
 	MasterTool.AddAction("apply-chain", applyChainAction)

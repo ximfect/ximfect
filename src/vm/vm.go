@@ -3,6 +3,7 @@ package vm
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"math/rand"
 	"ximfect/tool"
 	"ximfect/environ"
@@ -114,6 +115,58 @@ func vmInspect(L *lua.LState) int {
 	return 0
 }
 
+func vmInt(L *lua.LState) int {
+	val := L.Get(1)
+	switch val.Type() {
+	case lua.LTNumber:
+		L.Push(lua.LNumber(int(val.(lua.LNumber))))
+		return 1
+	case lua.LTString:
+		src := val.(lua.LString).String()
+		num, err := strconv.Atoi(src)
+		if err != nil {
+			return 0
+		}
+		L.Push(lua.LNumber(num))
+		return 1
+	default:
+		return 0
+	}
+}
+
+func vmDebug(log *tool.Log) func(L *lua.LState) int {
+	return (func(L *lua.LState) int {
+		val := L.Get(1)
+		if val.Type() != lua.LTString {
+			return 0
+		}
+		log.Debug(val.String())
+		return 0
+	})
+}
+
+func vmInfo(log *tool.Log) func(L *lua.LState) int {
+	return (func(L *lua.LState) int {
+		val := L.Get(1)
+		if val.Type() != lua.LTString {
+			return 0
+		}
+		log.Info(val.String())
+		return 0
+	})
+}
+
+func vmWarn(log *tool.Log) func(L *lua.LState) int {
+	return (func(L *lua.LState) int {
+		val := L.Get(1)
+		if val.Type() != lua.LTString {
+			return 0
+		}
+		log.Warn(val.String())
+		return 0
+	})
+}
+
 func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
 	log := ctx.Log.Sub("VM")
 
@@ -140,6 +193,10 @@ func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
 	vm.SetGlobal("random", vm.NewFunction(vmRandom))
 	vm.SetGlobal("randint", vm.NewFunction(vmRandInt))
 	vm.SetGlobal("inspect", vm.NewFunction(vmInspect))
+	vm.SetGlobal("int", vm.NewFunction(vmInt))
+	vm.SetGlobal("debug", vm.NewFunction(vmDebug(log)))
+	vm.SetGlobal("info", vm.NewFunction(vmInfo(log)))
+	vm.SetGlobal("warn", vm.NewFunction(vmWarn(log)))
 
 	if len(e.Metadata.Preload) > 0 {
 		log.Debug("Applying preload...")

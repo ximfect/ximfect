@@ -29,7 +29,11 @@ func help(ctx *tool.Context) error {
 			}
 
 			var nameFinal string
-			nameLong := name + " " + action.Usage.FormatUsage()
+			nameWithAliases := name
+			for _, a := range action.Aliases {
+				nameWithAliases += "|" + a
+			}
+			nameLong := nameWithAliases + " " + action.Usage.FormatUsage()
 			if len(nameLong) > 75 {
 				nameFinal = nameLong[0:75]
 			} else {
@@ -47,7 +51,11 @@ func help(ctx *tool.Context) error {
 		}
 
 		var nameFinal string
-		nameLong := target + " " + action.Usage.FormatUsage()
+		nameWithAliases := target
+		for _, a := range action.Aliases {
+			nameWithAliases += "|" + a
+		}
+		nameLong := nameWithAliases + " " + action.Usage.FormatUsage()
 		if len(nameLong) > 80 {
 			nameFinal = nameLong[0:80]
 		} else {
@@ -66,7 +74,8 @@ func init() {
 		"Shows a list of actions or an action's description.",
 		tool.ArgumentList{
 			tool.ArgSlice{"action?"},
-			tool.ArgMap{}}}
+			tool.ArgMap{}},
+		[]string{"h"}}
 
 	MasterTool.AddAction("help", helpAction)
 }
