@@ -15,20 +15,29 @@ type Chain []Pair
 
 // GetStmts retrieves statements from a string
 func GetStmts(src string) []string {
+	// output + context
 	stmts := []string{}
-	last := ""
+	ctx := ""
 
+	// loop through characters in source string
 	for _, c := range src {
+		// if the current character is a newline or a statement separator (;)
 		if c == '\n' || c == ';' {
-			stmts = append(stmts, strings.TrimSpace(last))
-			last = ""
+			// append the context to the statement list
+			stmts = append(stmts, strings.TrimSpace(ctx))
+			// clear the context
+			ctx = ""
+			// otherwise
 		} else {
-			last += string(c)
+			// append this string to the context
+			ctx += string(c)
 		}
 	}
 
-	if last != "" {
-		stmts = append(stmts, strings.TrimSpace(last))
+	// if the context is not empty after our first run
+	if ctx != "" {
+		// it's probably a left-over statement
+		stmts = append(stmts, strings.TrimSpace(ctx))
 	}
 
 	return stmts
@@ -131,11 +140,15 @@ func GetStmtValues(stmt string) (string, map[string]string) {
 
 // ParseChain parses source and get effect chain
 func ParseChain(src string) Chain {
+	// get statements
 	stmts := GetStmts(src)
+
+	// extract (effect, parameters) pairs from statemets
 	pairs := []Pair{}
 	for _, stmt := range stmts {
 		effect, params := GetStmtValues(stmt)
 		pairs = append(pairs, Pair{effect, params})
 	}
+
 	return Chain(pairs)
 }

@@ -22,14 +22,10 @@ func LoadTextfile(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for _, b := range buffer {
-		out = append(out, b)
-	}
+	out = append(out, buffer...)
 
 	for n == 0xFFFF {
-		for _, b := range buffer {
-			out = append(out, b)
-		}
+		out = append(out, buffer...)
 		buffer = make([]byte, 0xFFFF)
 		_, err = file.Seek(int64(n), 1)
 		if err != nil {
@@ -61,14 +57,10 @@ func LoadRawfile(path string) ([]byte, error) {
 	if err != nil {
 		return out, err
 	}
-	for _, b := range buffer {
-		out = append(out, b)
-	}
+	out = append(out, buffer...)
 
 	for n == 0xFFFF {
-		for _, b := range buffer {
-			out = append(out, b)
-		}
+		out = append(out, buffer...)
 		buffer = make([]byte, 0xFFFF)
 		_, err = file.Seek(int64(n), 1)
 		if err != nil {

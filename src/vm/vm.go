@@ -3,36 +3,47 @@ package vm
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"math/rand"
-	"ximfect/tool"
+	"strconv"
 	"ximfect/environ"
+	"ximfect/tool"
 
 	lua "github.com/yuin/gopher-lua"
 
 	"github.com/ximfect/ximgy"
 )
 
+// gets a named argument from the CLI call
 func vmArg(ctx *tool.Context) func(L *lua.LState) int {
 	return (func(L *lua.LState) int {
+		// get first argument from stack
 		nameLua := L.Get(1)
+		// make sure argument is a string
 		if nameLua.Type() != lua.LTString {
 			return 0
 		}
+		// cast to string
 		name := string(nameLua.(lua.LString))
-		
+
+		// check if the requested argument is in named arguments
 		if val, ok := ctx.Args.NamedArgs[name]; ok {
+			// check if it's a value or a boolean
 			if val.IsValue {
+				// value; return a string
 				L.Push(lua.LString(val.Value))
 			} else {
+				// boolean; return a boolean
 				L.Push(lua.LBool(val.BoolValue))
 			}
+			// amount of return values (1)
 			return 1
 		}
+		// nothing found, so there are 0 return values
 		return 0
 	})
 }
 
+// returns a pixel from the image at the specified coordinates
 func vmAt(img *ximgy.Image) func(L *lua.LState) int {
 	return (func(L *lua.LState) int {
 		xRaw := L.Get(1)
@@ -59,6 +70,7 @@ func vmAt(img *ximgy.Image) func(L *lua.LState) int {
 	})
 }
 
+// returns the size of the image
 func vmSize(img *ximgy.Image) func(L *lua.LState) int {
 	return (func(L *lua.LState) int {
 		out := L.CreateTable(2, 1)
@@ -69,11 +81,12 @@ func vmSize(img *ximgy.Image) func(L *lua.LState) int {
 	})
 }
 
+// imports a lib
 func vmImport(L *lua.LState) int {
 	var (
 		libName lua.LValue
-		lib *Lib
-		err error
+		lib     *Lib
+		err     error
 	)
 	libName = L.Get(1)
 	if libName.Type() != lua.LTString {
@@ -88,6 +101,7 @@ end:
 	return 0
 }
 
+// returns a random float (0.0 to 1.0)
 func vmRandom(L *lua.LState) int {
 	n := rand.Float32()
 	nV := lua.LNumber(n)
@@ -95,6 +109,7 @@ func vmRandom(L *lua.LState) int {
 	return 1
 }
 
+// returns a random integer from 0 to n
 func vmRandInt(L *lua.LState) int {
 	endRaw := L.Get(1)
 	if endRaw.Type() != lua.LTNumber {
@@ -105,6 +120,7 @@ func vmRandInt(L *lua.LState) int {
 	return 1
 }
 
+// prints information about the given object
 func vmInspect(L *lua.LState) int {
 	val := L.Get(1)
 	fmt.Println(val)
@@ -115,6 +131,7 @@ func vmInspect(L *lua.LState) int {
 	return 0
 }
 
+// turns the given object into an integer (if possible)
 func vmInt(L *lua.LState) int {
 	val := L.Get(1)
 	switch val.Type() {
@@ -134,6 +151,7 @@ func vmInt(L *lua.LState) int {
 	}
 }
 
+// sends a debug-level message to the logger
 func vmDebug(log *tool.Log) func(L *lua.LState) int {
 	return (func(L *lua.LState) int {
 		val := L.Get(1)
@@ -145,6 +163,7 @@ func vmDebug(log *tool.Log) func(L *lua.LState) int {
 	})
 }
 
+// sends a info-level message to the logger
 func vmInfo(log *tool.Log) func(L *lua.LState) int {
 	return (func(L *lua.LState) int {
 		val := L.Get(1)
@@ -156,6 +175,7 @@ func vmInfo(log *tool.Log) func(L *lua.LState) int {
 	})
 }
 
+// sends a warn-level message to the logger
 func vmWarn(log *tool.Log) func(L *lua.LState) int {
 	return (func(L *lua.LState) int {
 		val := L.Get(1)
@@ -167,24 +187,30 @@ func vmWarn(log *tool.Log) func(L *lua.LState) int {
 	})
 }
 
+// returns a fresh new vm state to be used
 func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
 	log := ctx.Log.Sub("VM")
 
+	// create an empty state
 	log.Debug("Creating state...")
 	vm := lua.NewState()
 
+	// run the effect file
 	log.Debug("Adding effect...")
 	err := vm.DoFile(environ.Combine(e.Dir, "effect.lua"))
 	if err != nil {
 		return nil, err
 	}
 
+	// check if an effect function is defined
 	log.Debug("Checking if effect is correct...")
 	fxfnVal := vm.GetGlobal("effect")
 	if fxfnVal.Type() != lua.LTFunction {
 		return nil, errors.New("effect does not define effect() function")
 	}
 
+	// add our public api:
+	// to see what each function does, scroll up to it's definition
 	log.Debug("Adding API functions...")
 	vm.SetGlobal("arg", vm.NewFunction(vmArg(ctx)))
 	vm.SetGlobal("at", vm.NewFunction(vmAt(img)))
@@ -198,6 +224,7 @@ func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
 	vm.SetGlobal("info", vm.NewFunction(vmInfo(log)))
 	vm.SetGlobal("warn", vm.NewFunction(vmWarn(log)))
 
+	// apply preload if necessary
 	if len(e.Metadata.Preload) > 0 {
 		log.Debug("Applying preload...")
 		for _, file := range e.Metadata.Preload {
@@ -207,7 +234,7 @@ func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
 			}
 		}
 	}
-	
+
 	log.Debug("Done!")
 	return vm, nil
 }

@@ -77,10 +77,8 @@ func GetArgv(src []string) ArgumentList {
 		valueB   bool
 		valueIsB bool
 		hasValue bool
-		arg      string
 	)
-	for i := namedArgsStart; i < len(src); i++ {
-		arg = src[i]
+	for i, arg := range src[namedArgsStart:] {
 		if !hasValue {
 			if strings.HasPrefix(arg, "--") {
 				if hasName {

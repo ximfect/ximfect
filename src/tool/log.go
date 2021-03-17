@@ -12,6 +12,12 @@ var LevelNames = []string{
 	"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
 
 // LevelColors holds ANSI color codes for the different Entry levels.
+//
+// Debug = Gray
+// Info = Reset
+// Warn = Yellow
+// Error = Red
+// Fatal = White (on Red)
 var LevelColors = []string{
 	"\033[0;90m", "\033[0m", "\033[0;33m", "\033[0;31m", "\033[41m"}
 

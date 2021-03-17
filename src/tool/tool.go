@@ -54,25 +54,38 @@ func (t *Tool) RemAction(name string) {
 
 // GetAction returns an action from this Tool
 func (t *Tool) GetAction(name string) (*Action, bool) {
+	// simple lookup into actions map
 	action, exists := t.actions[name]
+	// if the simple lookup didn't work, try to find by alias
 	if !exists {
+		// the action we finally found
 		var found *Action
+		// did we find anything?
 		isFound := false
+		// for every action
 		for _, a := range t.actions {
+			// for every alias of that action
 			for _, n := range a.Aliases {
+				// if the alias is the name we're looking for
 				if n == name {
+					// we found something
 					isFound = true
+					// and it's this action
 					found = a
 					break
 				}
 			}
 		}
+		// if we found something, return it and true
 		if isFound {
 			return found, true
 		}
+		// warn message
 		t.ToolLog.Warn("Attempt to get inexsistent action: " + name)
+		// return nil and false
 		return nil, false
 	}
+	// return the result of the simple lookup and true
 	return action, true
 }
 
@@ -87,17 +100,24 @@ func (t *Tool) GetActionList() []string {
 
 // RunAction runs an action in this Tool
 func (t *Tool) RunAction(name string, args ArgumentList) error {
+	// debug message
 	t.ToolLog.Debug("Running action: " + name)
+	// Get the action
 	action, exists := t.GetAction(name)
+	// if we couldn't get it
 	if !exists {
+		// error out
 		t.ToolLog.Error("unknown action: " + name)
 		return errors.New("unknown action: " + name)
 	}
+	// create a log for the action
 	log := t.MasterLog.Sub("Action[" + name + "]")
+	// create a context for the action
 	ctx := &Context{t, args, log}
-	err := action.Func(ctx)
-	if err != nil {
+	// run the action and error out if necessary
+	if err := action.Func(ctx); err != nil {
 		log.Error(err.Error())
+		return err
 	}
-	return err
+	return nil
 }

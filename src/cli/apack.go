@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 	"ximfect/environ"
-	"ximfect/vm"
 	"ximfect/pack"
 	"ximfect/tool"
+	"ximfect/vm"
 )
 
 func packEffect(ctx *tool.Context) error {
@@ -29,7 +29,7 @@ func packEffect(ctx *tool.Context) error {
 
 	ctx.Log.Debug("Packaging...")
 	path := environ.AppdataPath("effects", effID)
-	raw, err := pack.GetPackedDirectory(path)
+	raw, err := pack.GetPackedDirectory(effID, path)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func packLib(ctx *tool.Context) error {
 
 	ctx.Log.Debug("Packaging...")
 	path := environ.AppdataPath("libs", libID)
-	raw, err := pack.GetPackedDirectory(path)
+	raw, err := pack.GetPackedDirectory(libID, path)
 	if err != nil {
 		return err
 	}
