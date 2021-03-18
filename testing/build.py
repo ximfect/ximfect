@@ -1,7 +1,8 @@
-import subprocess
 import os
+import subprocess
 from shlex import join
 from sys import platform
+
 
 def main(argv) -> int:
 	print(": Increment build number")
@@ -16,27 +17,30 @@ def main(argv) -> int:
 	elif platform.startswith("win32") or platform.startswith("cygwin"):
 		out_exec = "ximfect.exe"
 	else:
-		print("-> Unsuporrted platform!")
+		print("!! Unsupported platform!")
 		return 2
 	out_path = os.path.abspath(out_exec)
 	
-	print(": Build")
+	print(f": Output: {out_path}")
+
 	if os.path.exists(out_path):
 		print(": Deleting old executable")
 		os.remove(out_path)
 
+	print(": Build")
+	cmd = join(["go", "build", "-o", out_path])
+	if platform.startswith("win32"):
+		cmd = cmd.replace("'", '"')
+		
 	b = subprocess.run(
-		join(["go", "build", "-o", out_path]), 
+		cmd, 
 		shell = True, 
 		cwd = os.path.abspath("../src"))
 
 	if b.returncode != 0:
-		print(b.args)
-		print(f"-> Return code: {b.returncode}")
+		print(f"!! Return code: {b.returncode}")
 		return 1
-
-	print(f":: Output: {out_path}")
-
+	
 	return 0
 	
 if __name__ == "__main__":
