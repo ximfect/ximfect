@@ -1,6 +1,6 @@
 module ximfect
 
-go 1.14
+go 1.16
 
 require (
 	github.com/mattn/go-colorable v0.1.8

@@ -1,9 +1,15 @@
 package tool
 
-const (
+import (
+	_ "embed"
+)
+
+var (
 	// Version is the release number
-	Version = "0.3.0"
+	//go:embed version
+	Version string
 
 	// Build is the build number
-	Build = 1051
+	//go:embed build
+	Build string
 )
