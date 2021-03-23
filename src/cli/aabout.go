@@ -3,13 +3,16 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"io/fs"
+	"path/filepath"
 	"strings"
+	"ximfect/environ"
 	"ximfect/tool"
 	"ximfect/vm"
 )
 
 func aboutTool(ctx *tool.Context) error {
-	fmt.Println(ctx.Tool.Version)
+	fmt.Println(ctx.Tool.Version, "build", tool.Build)
 	return nil
 }
 
@@ -93,6 +96,138 @@ func describeLib(ctx *tool.Context) error {
 	return nil
 }
 
+func listEffects(ctx *tool.Context) error {
+	var (
+		nameFilter   string
+		idFilter     string
+		authorFilter string
+		descFilter   string
+	)
+
+	nameArg, ok := ctx.Args.NamedArgs["name"]
+	if !ok {
+		nameFilter = ""
+	} else {
+		nameFilter = strings.ToLower(nameArg.Value)
+	}
+
+	idArg, ok := ctx.Args.NamedArgs["id"]
+	if !ok {
+		idFilter = ""
+	} else {
+		idFilter = strings.ToLower(idArg.Value)
+	}
+
+	authorArg, ok := ctx.Args.NamedArgs["author"]
+	if !ok {
+		authorFilter = ""
+	} else {
+		authorFilter = strings.ToLower(authorArg.Value)
+	}
+
+	descArg, ok := ctx.Args.NamedArgs["desc"]
+	if !ok {
+		descFilter = ""
+	} else {
+		descFilter = strings.ToLower(descArg.Value)
+	}
+
+	filepath.WalkDir(environ.AppdataPath("effects"),
+		func(path string, d fs.DirEntry, err error) error {
+			if d.IsDir() {
+				eff, err := vm.LoadAppdataEffect(d.Name())
+				if err == nil {
+					nameRes := strings.Contains(
+						strings.ToLower(eff.Metadata.Name), nameFilter)
+					idRes := strings.Contains(
+						strings.ToLower(eff.Metadata.ID), idFilter)
+					authorRes := strings.Contains(
+						strings.ToLower(eff.Metadata.Author), authorFilter)
+					descRes := strings.Contains(
+						strings.ToLower(eff.Metadata.Desc), descFilter)
+
+					if nameRes && idRes && authorRes && descRes {
+						fmt.Printf("%s v%s (%s)\n\tby %s\n\t%s\n",
+							eff.Metadata.Name,
+							eff.Metadata.Version,
+							eff.Metadata.ID,
+							eff.Metadata.Author,
+							eff.Metadata.Desc)
+					}
+				}
+			}
+			return nil
+		})
+
+	return nil
+}
+
+func listLibs(ctx *tool.Context) error {
+	var (
+		nameFilter   string
+		idFilter     string
+		authorFilter string
+		descFilter   string
+	)
+
+	nameArg, ok := ctx.Args.NamedArgs["name"]
+	if !ok {
+		nameFilter = ""
+	} else {
+		nameFilter = strings.ToLower(nameArg.Value)
+	}
+
+	idArg, ok := ctx.Args.NamedArgs["id"]
+	if !ok {
+		idFilter = ""
+	} else {
+		idFilter = strings.ToLower(idArg.Value)
+	}
+
+	authorArg, ok := ctx.Args.NamedArgs["author"]
+	if !ok {
+		authorFilter = ""
+	} else {
+		authorFilter = strings.ToLower(authorArg.Value)
+	}
+
+	descArg, ok := ctx.Args.NamedArgs["desc"]
+	if !ok {
+		descFilter = ""
+	} else {
+		descFilter = strings.ToLower(descArg.Value)
+	}
+
+	filepath.WalkDir(environ.AppdataPath("libs"),
+		func(path string, d fs.DirEntry, err error) error {
+			if d.IsDir() {
+				lib, err := vm.LoadAppdataLib(d.Name())
+				if err == nil {
+					nameRes := strings.Contains(
+						strings.ToLower(lib.Metadata.Name), nameFilter)
+					idRes := strings.Contains(
+						strings.ToLower(lib.Metadata.ID), idFilter)
+					authorRes := strings.Contains(
+						strings.ToLower(lib.Metadata.Author), authorFilter)
+					descRes := strings.Contains(
+						strings.ToLower(lib.Metadata.Desc), descFilter)
+
+					if nameRes && idRes && authorRes && descRes {
+						fmt.Printf("%s v%s (%s)\n\tby %s\n\t%s\n",
+							lib.Metadata.Name,
+							lib.Metadata.Version,
+							lib.Metadata.ID,
+							lib.Metadata.Author,
+							lib.Metadata.Desc)
+					}
+				}
+			}
+			return nil
+		})
+
+	return nil
+}
+
 func dev(ctx *tool.Context) error {
 	//panic("hello")
 	return nil
@@ -126,6 +261,30 @@ func init() {
 			tool.ArgMap{}},
 		[]string{"dl"}}
 
+	listEffectsAction := &tool.Action{
+		listEffects,
+		"Shows a list of available effects.",
+		tool.ArgumentList{
+			tool.ArgSlice{},
+			tool.ArgMap{
+				"author": tool.Argument{true, "author", false},
+				"desc":   tool.Argument{true, "description", false},
+				"id":     tool.Argument{true, "effect ID", false},
+				"name":   tool.Argument{true, "name", false}}},
+		[]string{"le"}}
+
+	listLibsAction := &tool.Action{
+		listLibs,
+		"Shows a list of available libs.",
+		tool.ArgumentList{
+			tool.ArgSlice{},
+			tool.ArgMap{
+				"author": tool.Argument{true, "author", false},
+				"desc":   tool.Argument{true, "description", false},
+				"id":     tool.Argument{true, "effect ID", false},
+				"name":   tool.Argument{true, "name", false}}},
+		[]string{"ll"}}
+
 	devAction := &tool.Action{
 		dev,
 		"dev",
@@ -141,6 +300,8 @@ func init() {
 	MasterTool.AddAction("version", aboutToolAction)
 	MasterTool.AddAction("about-effect", describeEffectAction)
 	MasterTool.AddAction("about-lib", describeLibAction)
+	MasterTool.AddAction("list-effects", listEffectsAction)
+	MasterTool.AddAction("list-libs", listLibsAction)
 	MasterTool.AddAction("dev", devAction)
 	MasterTool.AddAction("license", licenseAction)
 }

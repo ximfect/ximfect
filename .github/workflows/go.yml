@@ -9,34 +9,6 @@ on:
     paths: [ src/* ]
 
 jobs:
-
-  build-win:
-    name: Build on Windows
-    runs-on: windows-latest
-    steps:
-
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.13
-      id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-
-    - name: Get dependencies
-      run: |
-        cd src
-        go get ./...
-
-    - name: Build
-      run: |
-        cd src
-        go build
-
-    - name: Test
-      run: src\ximfect.exe gen-image test.png
-
   build-ubuntu:
     name: Build on Ubuntu
     runs-on: ubuntu-latest
@@ -58,8 +30,10 @@ jobs:
 
     - name: Build
       run: |
-        cd src
-        go build
+        cd testing
+        python3 ./build.py
 
     - name: Test
-      run: ./src/ximfect gen-image test.png
+      run: |
+        cd testing
+        ./ximfect version

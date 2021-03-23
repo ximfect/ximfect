@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"ximfect/tool"
 )
 
@@ -53,11 +54,25 @@ func help(ctx *tool.Context) error {
 		var nameFinal string
 		nameWithAliases := target
 		for _, a := range action.Aliases {
-			nameWithAliases += "|" + a
+			if a != target {
+				nameWithAliases += "|" + a
+			}
 		}
 		nameLong := nameWithAliases + " " + action.Usage.FormatUsage()
 		if len(nameLong) > 80 {
-			nameFinal = nameLong[0:80]
+			nls := strings.Split(nameLong, " ")
+			nfs := []string{}
+			ctx := ""
+			for _, e := range nls {
+				if len(ctx+" "+e) > 80 {
+					nfs = append(nfs, ctx)
+					ctx = e
+				} else {
+					ctx += e + " "
+				}
+			}
+			nfs = append(nfs, ctx)
+			nameFinal = strings.Join(nfs, "\n")
 		} else {
 			nameFinal = nameLong
 		}
