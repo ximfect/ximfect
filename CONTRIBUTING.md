@@ -4,6 +4,8 @@ Below are some basic guidelines for different ways you can contribute to the dev
 
 These are not perfect, but they should give you a general idea of what to expect if you want to contribute.
 
+Remember to make yourself familiar with the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Discussing issues/PRs?
 
 * Discussing issues and PRs is contributing too!
