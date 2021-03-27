@@ -4,8 +4,8 @@ package vm
 
 import (
 	"fmt"
-	"os"
 	"io/ioutil"
+	"os"
 	"strings"
 	"ximfect/environ"
 
@@ -39,7 +39,7 @@ func LoadEffect(path, id string) (*Effect, error) {
 
 // LoadAppdataEffect does what Load does, but path is always APPDATA
 func LoadAppdataEffect(id string) (*Effect, error) {
-	return LoadEffect(environ.AppdataPath("effects"), id)
+	return LoadEffect(environ.DataPath("effects"), id)
 }
 
 // LoadLib loads a Lib from the given directory with the given id.
@@ -89,5 +89,5 @@ func LoadLib(path, id string) (*Lib, error) {
 
 // LoadAppdataLib does what Load does, but path is always APPDATA
 func LoadAppdataLib(id string) (*Lib, error) {
-	return LoadLib(environ.AppdataPath("libs"), id)
+	return LoadLib(environ.DataPath("libs"), id)
 }

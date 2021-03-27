@@ -102,6 +102,8 @@ func listEffects(ctx *tool.Context) error {
 		idFilter     string
 		authorFilter string
 		descFilter   string
+
+		amt = -1
 	)
 
 	nameArg, ok := ctx.Args.NamedArgs["name"]
@@ -132,9 +134,13 @@ func listEffects(ctx *tool.Context) error {
 		descFilter = strings.ToLower(descArg.Value)
 	}
 
-	filepath.WalkDir(environ.AppdataPath("effects"),
+	filepath.WalkDir(environ.DataPath("effects"),
 		func(path string, d fs.DirEntry, err error) error {
+			if d == nil {
+				return nil
+			}
 			if d.IsDir() {
+				amt++
 				eff, err := vm.LoadAppdataEffect(d.Name())
 				if err == nil {
 					nameRes := strings.Contains(
@@ -159,6 +165,7 @@ func listEffects(ctx *tool.Context) error {
 			return nil
 		})
 
+	fmt.Println("\nFound", amt, "effect(s)")
 	return nil
 }
 
@@ -168,6 +175,8 @@ func listLibs(ctx *tool.Context) error {
 		idFilter     string
 		authorFilter string
 		descFilter   string
+
+		amt = -1
 	)
 
 	nameArg, ok := ctx.Args.NamedArgs["name"]
@@ -198,9 +207,10 @@ func listLibs(ctx *tool.Context) error {
 		descFilter = strings.ToLower(descArg.Value)
 	}
 
-	filepath.WalkDir(environ.AppdataPath("libs"),
+	filepath.WalkDir(environ.DataPath("libs"),
 		func(path string, d fs.DirEntry, err error) error {
 			if d.IsDir() {
+				amt++
 				lib, err := vm.LoadAppdataLib(d.Name())
 				if err == nil {
 					nameRes := strings.Contains(
@@ -225,6 +235,7 @@ func listLibs(ctx *tool.Context) error {
 			return nil
 		})
 
+	fmt.Println("\nFound", amt, "lib(s)")
 	return nil
 }
 

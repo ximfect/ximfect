@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"io/ioutil"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 
-	"ximfect/vm"
 	"ximfect/environ"
 	"ximfect/fxchain"
 	"ximfect/tool"
+	"ximfect/vm"
 
 	"github.com/ximfect/ximgy"
 )
@@ -78,7 +79,7 @@ func initEffect(ctx *tool.Context) error {
 		noTemplate = false
 	}
 	effID := strings.ToLower(ctx.Args.PosArgs[0])
-	effPath := environ.AppdataPath("effects", effID)
+	effPath := environ.DataPath("effects", effID)
 	scriptPath := environ.Combine(effPath, "effect.lua")
 	metaPath := environ.Combine(effPath, "effect.yml")
 
@@ -114,7 +115,7 @@ func initEffect(ctx *tool.Context) error {
 	}
 
 	// tell the user where the effect is
-	fmt.Println("View your effect in:", environ.AppdataPath("effects", effID))
+	fmt.Println("View your effect in:", environ.DataPath("effects", effID))
 	return nil
 }
 
@@ -130,10 +131,11 @@ func applyChain(ctx *tool.Context) error {
 
 	ctx.Log.Debug("Loading FX chain: " + chainFilename)
 	// load the fx chain "script"
-	src, err := environ.LoadTextfile(chainFilename)
+	raw, err := ioutil.ReadFile(chainFilename)
 	if err != nil {
 		return err
 	}
+	src := string(raw)
 
 	ctx.Log.Debug("Loading image: " + imageFilename)
 	// load the source image using ximgy
@@ -189,8 +191,8 @@ func genImage(ctx *tool.Context) error {
 	// fill the image with a gradient
 	img.Iterate(func(pixel ximgy.Pixel) (color.RGBA, error) {
 		return color.RGBA{
-			uint8(pixel.X / step), 
-			uint8(((pixel.X / 2) + (pixel.Y / 2)) / step), 
+			uint8(pixel.X / step),
+			uint8(((pixel.X / 2) + (pixel.Y / 2)) / step),
 			uint8(pixel.Y / step), 255}, nil
 	})
 

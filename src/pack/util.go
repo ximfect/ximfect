@@ -46,7 +46,7 @@ func GetDirectoryFiles(path string) ([]PackageFile, error) {
 		}
 		name = entry.Name()
 		filepath = environ.Combine(path, name)
-		contents, err = environ.LoadRawfile(filepath)
+		contents, err = ioutil.ReadFile(filepath)
 		if err != nil {
 			return nil, nil
 		}

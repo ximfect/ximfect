@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"ximfect/environ"
@@ -28,7 +29,7 @@ func packEffect(ctx *tool.Context) error {
 	outFileName := effID + "-" + effObj.Metadata.Version + ".fx.xpk"
 
 	ctx.Log.Debug("Packaging...")
-	path := environ.AppdataPath("effects", effID)
+	path := environ.DataPath("effects", effID)
 	raw, err := pack.GetPackedDirectory(effID, path)
 	if err != nil {
 		return err
@@ -61,7 +62,7 @@ func packLib(ctx *tool.Context) error {
 	outFileName := libID + "-" + libObj.Metadata.Version + ".lib.xpk"
 
 	ctx.Log.Debug("Packaging...")
-	path := environ.AppdataPath("libs", libID)
+	path := environ.DataPath("libs", libID)
 	raw, err := pack.GetPackedDirectory(libID, path)
 	if err != nil {
 		return err
@@ -85,7 +86,7 @@ func unpackEffect(ctx *tool.Context) error {
 	packageFilename := ctx.Args.PosArgs[0]
 
 	ctx.Log.Debug("Reading file: " + packageFilename)
-	raw, err := environ.LoadRawfile(packageFilename)
+	raw, err := ioutil.ReadFile(packageFilename)
 	if err != nil {
 		return err
 	}
@@ -99,7 +100,7 @@ func unpackEffect(ctx *tool.Context) error {
 	}
 
 	ctx.Log.Debug("Unpacking...")
-	err = pack.UnpackTo(pkg, environ.AppdataPath("effects", pkg.Name))
+	err = pack.UnpackTo(pkg, environ.DataPath("effects", pkg.Name))
 	if err != nil {
 		return err
 	}
@@ -115,7 +116,7 @@ func unpackLib(ctx *tool.Context) error {
 	packageFilename := ctx.Args.PosArgs[0]
 
 	ctx.Log.Debug("Reading file: " + packageFilename)
-	raw, err := environ.LoadRawfile(packageFilename)
+	raw, err := ioutil.ReadFile(packageFilename)
 	if err != nil {
 		return err
 	}
@@ -127,7 +128,7 @@ func unpackLib(ctx *tool.Context) error {
 	}
 
 	ctx.Log.Debug("Unpacking...")
-	err = pack.UnpackTo(pkg, environ.AppdataPath("libs", pkg.Name))
+	err = pack.UnpackTo(pkg, environ.DataPath("libs", pkg.Name))
 	if err != nil {
 		return err
 	}
