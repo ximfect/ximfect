@@ -209,42 +209,35 @@ func genImage(ctx *tool.Context) error {
 func init() {
 	MasterTool.ToolLog.Debug("Loading actions from aeffects...")
 
-	applyEffectAction := &tool.Action{
-		applyEffect,
+	aeA := tool.NewAction(
+		"apply-effect",
+		[]string{"ae"},
 		"Applies an effect to an image.",
-		tool.ArgumentList{
-			tool.ArgSlice{"image", "effect-id", "output"},
-			tool.ArgMap{}},
-		[]string{"ae"}}
+		tool.QuickPosArgs("image", "effect-id", "output"),
+		applyEffect)
 
-	applyChainAction := &tool.Action{
-		applyChain,
-		"Applies an effect chain to an image.",
-		tool.ArgumentList{
-			tool.ArgSlice{"image", "fx-chain", "output"},
-			tool.ArgMap{}},
-		[]string{"afc"}}
+	acA := tool.NewAction(
+		"apply-chain",
+		[]string{"ac"},
+		"Applies an FX chain to an image.",
+		tool.QuickPosArgs("image", "fx-chain", "output"),
+		applyChain)
 
-	initEffectAction := &tool.Action{
-		initEffect,
-		"Initializes an empty effect.",
-		tool.ArgumentList{
-			tool.ArgSlice{"effect-id"},
-			tool.ArgMap{
-				"no-template": tool.Argument{false, "generate template?", false}}},
-		[]string{"ie"}}
+	ieA := tool.NewAction(
+		"init-effect",
+		[]string{"ie"},
+		"Creates a new effect template.",
+		tool.QuickPosArgs("effect-id"),
+		initEffect)
 
-	genImageAction := &tool.Action{
-		genImage,
+	giA := tool.NewAction(
+		"gen-image",
+		[]string{"gi"},
 		"Generates an image.",
-		tool.ArgumentList{
-			tool.ArgSlice{"output"},
-			tool.ArgMap{
-				"size": tool.Argument{true, "image size", false}}},
-		[]string{"gi"}}
+		tool.QuickNamedArgs(tool.ArgMap{
+			"size": tool.QuickArgument(true, "image size", false)}),
+		genImage)
 
-	MasterTool.AddAction("apply-effect", applyEffectAction)
-	MasterTool.AddAction("apply-chain", applyChainAction)
-	MasterTool.AddAction("init-effect", initEffectAction)
-	MasterTool.AddAction("gen-image", genImageAction)
+	MasterTool.AddManyActions("effects", aeA, acA, ieA)
+	MasterTool.AddAction("images", giA)
 }

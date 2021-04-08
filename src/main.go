@@ -12,6 +12,7 @@ import (
 func main() {
 	// The main CLI for the application
 	t := cli.MasterTool
+
 	// Make sure that the appdata directories exist
 	environ.EnsureAppdata()
 
@@ -35,23 +36,23 @@ func main() {
 			if strings.HasSuffix(os.Args[1], ".fx.xpk") {
 				// use unpack-effect
 				act = "unpack-effect"
-			// If the package is a lib package
+				// If the package is a lib package
 			} else if strings.HasSuffix(os.Args[1], ".lib.xpk") {
 				// use unpack-lib
 				act = "unpack-lib"
-			// Otherwise we can't unpack an unknown package type
+				// Otherwise we can't unpack an unknown package type
 			} else {
 				// error out
 				t.ToolLog.Error("unknown package type: " + os.Args[1])
 				err = errors.New("unknown package type: " + os.Args[1])
 			}
-		// It's not
+			// It's not
 		} else {
 			// If there are arguments we can parse
 			if len(os.Args) > 2 {
 				// Parse them
 				args = tool.GetArgv(os.Args[2:])
-			// If not
+				// If not
 			} else {
 				// Just use an empty ArgumentList
 				args = tool.ArgumentList{
@@ -61,7 +62,7 @@ func main() {
 			// the action
 			act = os.Args[1]
 		}
-	// We don't, so we run 'help' by default
+		// We don't, so we run 'help' by default
 	} else {
 		act = "help"
 	}

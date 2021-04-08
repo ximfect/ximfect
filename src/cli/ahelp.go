@@ -1,96 +1,75 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"sort"
-	"strings"
 	"ximfect/tool"
 )
 
 func help(ctx *tool.Context) error {
 	if len(ctx.Args.PosArgs) == 0 {
 		ctx.Tool.PrintTitle()
-		fmt.Println("\n" + ctx.Tool.Desc + "\n")
-		fmt.Println("Required arguments are surrounded by <>")
-		fmt.Print("Optional arguments are surrounded by []\n\n")
-		list := ctx.Tool.GetActionList()
-		sort.Strings(list)
-		for _, name := range list {
-			action, exists := ctx.Tool.GetAction(name)
-			if !exists {
-				continue
-			}
+		fmt.Print("\n" + ctx.Tool.Desc + "\n\n")
 
-			var desc string
-			if len(action.Desc) > 70 {
-				desc = action.Desc[0:70]
-			} else {
-				desc = action.Desc
-			}
+		categ := []string{}
+		for catName := range ctx.Tool.Categories {
+			categ = append(categ, catName)
+		}
+		sort.Strings(categ)
 
-			var nameFinal string
-			nameWithAliases := name
-			for _, a := range action.Aliases {
-				nameWithAliases += "|" + a
-			}
-			nameLong := nameWithAliases + " " + action.Usage.FormatUsage()
-			if len(nameLong) > 75 {
-				nameFinal = nameLong[0:75]
-			} else {
-				nameFinal = nameLong
-			}
-
-			fmt.Println("     " + nameFinal)
-			fmt.Println("          " + desc)
+		for _, catName := range categ {
+			cat := ctx.Tool.Categories[catName]
+			fmt.Print("    " + catName + "\n")
+			fmt.Print("        " + cat.Desc + "\n")
 		}
 	} else {
-		target := ctx.Args.PosArgs[0]
-		action, exists := ctx.Tool.GetAction(target)
-		if !exists {
-			return errors.New("unknown action: " + target)
-		}
-
-		var nameFinal string
-		nameWithAliases := target
-		for _, a := range action.Aliases {
-			if a != target {
-				nameWithAliases += "|" + a
-			}
-		}
-		nameLong := nameWithAliases + " " + action.Usage.FormatUsage()
-		if len(nameLong) > 80 {
-			nls := strings.Split(nameLong, " ")
-			nfs := []string{}
-			ctx := ""
-			for _, e := range nls {
-				if len(ctx+" "+e) > 80 {
-					nfs = append(nfs, ctx)
-					ctx = e
+		arg := ctx.Args.PosArgs[0]
+		cat, isCat := ctx.Tool.Categories[arg]
+		act, isAct := ctx.Tool.GetAction(arg)
+		if isCat {
+			ctx.Tool.PrintTitle()
+			fmt.Print("\n" + cat.Desc + "\n\n")
+			for _, act := range cat.Actions {
+				var desc string
+				if len(act.Desc) > 70 {
+					desc = act.Desc[0:70]
 				} else {
-					ctx += e + " "
+					desc = act.Desc
 				}
-			}
-			nfs = append(nfs, ctx)
-			nameFinal = strings.Join(nfs, "\n")
-		} else {
-			nameFinal = nameLong
-		}
 
-		fmt.Println(nameFinal)
-		fmt.Println("    " + action.Desc)
+				var nameFinal string
+				nameWithAliases := act.Name
+				for _, a := range act.Alias {
+					nameWithAliases += "|" + a
+				}
+				nameLong := nameWithAliases + " " + act.Usage.FormatUsage()
+				if len(nameLong) > 75 {
+					nameFinal = nameLong[0:75]
+				} else {
+					nameFinal = nameLong
+				}
+
+				fmt.Println("     " + nameFinal)
+				fmt.Println("          " + desc)
+			}
+		} else if isAct {
+			fmt.Print("    " + act.Name + "\n")
+			fmt.Print("        " + act.Usage.FormatUsage() + "\n\n")
+			fmt.Print("        " + act.Desc + "\n")
+		} else {
+			return fmt.Errorf("i don't know what `%s` is", arg)
+		}
 	}
 	return nil
 }
 
 func init() {
-	helpAction := &tool.Action{
-		help,
-		"Shows a list of actions or an action's description.",
-		tool.ArgumentList{
-			tool.ArgSlice{"action?"},
-			tool.ArgMap{}},
-		[]string{"h"}}
+	hA := tool.NewAction(
+		"help",
+		[]string{"h", "?"},
+		"Shows help.",
+		tool.QuickPosArgs("action or category?"),
+		help)
 
-	MasterTool.AddAction("help", helpAction)
+	MasterTool.AddAction("info", hA)
 }

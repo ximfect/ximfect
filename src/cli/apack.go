@@ -139,40 +139,34 @@ func unpackLib(ctx *tool.Context) error {
 func init() {
 	MasterTool.ToolLog.Debug("Loading actions from apack...")
 
-	packEffectAction := &tool.Action{
-		packEffect,
-		"Packs an effect.",
-		tool.ArgumentList{
-			tool.ArgSlice{"effect-id"},
-			tool.ArgMap{}},
-		[]string{"pe"}}
+	peA := tool.NewAction(
+		"pack-effect",
+		[]string{"pe"},
+		"Creates an effect package.",
+		tool.QuickPosArgs("effect-id"),
+		packEffect)
 
-	packLibAction := &tool.Action{
-		packLib,
-		"Packs a lib.",
-		tool.ArgumentList{
-			tool.ArgSlice{"lib-id"},
-			tool.ArgMap{}},
-		[]string{"pl"}}
+	plA := tool.NewAction(
+		"pack-lib",
+		[]string{"pl"},
+		"Creates a lib package.",
+		tool.QuickPosArgs("lib-id"),
+		packLib)
 
-	unpackEffectAction := &tool.Action{
-		unpackEffect,
-		"Unpacks an effect.",
-		tool.ArgumentList{
-			tool.ArgSlice{"package"},
-			tool.ArgMap{}},
-		[]string{"upe"}}
+	upeA := tool.NewAction(
+		"unpack-effect",
+		[]string{"upe"},
+		"Installs an effect package.",
+		tool.QuickPosArgs("effect-id"),
+		unpackEffect)
 
-	unpackLibAction := &tool.Action{
-		unpackLib,
-		"Unpacks a lib.",
-		tool.ArgumentList{
-			tool.ArgSlice{"package"},
-			tool.ArgMap{}},
-		[]string{"upl"}}
+	uplA := tool.NewAction(
+		"unpack-lib",
+		[]string{"upl"},
+		"Installs a lib package.",
+		tool.QuickPosArgs("lib-id"),
+		unpackLib)
 
-	MasterTool.AddAction("pack-effect", packEffectAction)
-	MasterTool.AddAction("pack-lib", packLibAction)
-	MasterTool.AddAction("unpack-effect", unpackEffectAction)
-	MasterTool.AddAction("unpack-lib", unpackLibAction)
+	MasterTool.AddManyActions("effects", peA, upeA)
+	MasterTool.AddManyActions("libs", plA, uplA)
 }

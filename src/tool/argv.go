@@ -113,3 +113,15 @@ func GetArgv(src []string) ArgumentList {
 	// Combine and return
 	return ArgumentList{posArgs, namedArgs}
 }
+
+func QuickPosArgs(args ...string) ArgumentList {
+	return ArgumentList{ArgSlice(args), ArgMap{}}
+}
+
+func QuickNamedArgs(args ArgMap) ArgumentList {
+	return ArgumentList{ArgSlice{}, args}
+}
+
+func QuickArgument(v bool, d string, r bool) Argument {
+	return Argument{v, d, r}
+}

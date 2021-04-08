@@ -250,69 +250,65 @@ func init() {
 
 	MasterTool.ToolLog.Debug("Loading actions from aabout...")
 
-	aboutToolAction := &tool.Action{
-		aboutTool,
-		"Shows version information.",
-		tool.ArgumentList{},
-		[]string{"ver", "v"}}
+	deA := tool.NewAction(
+		"about-effect",
+		[]string{"de"},
+		"Shows information about an effect.",
+		tool.QuickPosArgs("effect-id"),
+		describeEffect)
 
-	describeEffectAction := &tool.Action{
-		describeEffect,
-		"Shows an effect's information.",
-		tool.ArgumentList{
-			tool.ArgSlice{"effect-id"},
-			tool.ArgMap{}},
-		[]string{"de"}}
+	dlA := tool.NewAction(
+		"about-lib",
+		[]string{"dl"},
+		"Shows information about a lib.",
+		tool.QuickPosArgs("lib-id"),
+		describeLib)
 
-	describeLibAction := &tool.Action{
-		describeLib,
-		"Shows a lib's information.",
-		tool.ArgumentList{
-			tool.ArgSlice{"lib-id"},
-			tool.ArgMap{}},
-		[]string{"dl"}}
-
-	listEffectsAction := &tool.Action{
-		listEffects,
+	leA := tool.NewAction(
+		"list-effects",
+		[]string{"le"},
 		"Shows a list of available effects.",
-		tool.ArgumentList{
-			tool.ArgSlice{},
-			tool.ArgMap{
-				"author": tool.Argument{true, "author", false},
-				"desc":   tool.Argument{true, "description", false},
-				"id":     tool.Argument{true, "effect ID", false},
-				"name":   tool.Argument{true, "name", false}}},
-		[]string{"le"}}
+		tool.QuickNamedArgs(tool.ArgMap{
+			"author": tool.QuickArgument(true, "author", false),
+			"desc":   tool.QuickArgument(true, "description", false),
+			"id":     tool.QuickArgument(true, "effect ID", false),
+			"name":   tool.QuickArgument(true, "name", false)}),
+		listEffects)
 
-	listLibsAction := &tool.Action{
-		listLibs,
+	llA := tool.NewAction(
+		"list-libs",
+		[]string{"ll"},
 		"Shows a list of available libs.",
-		tool.ArgumentList{
-			tool.ArgSlice{},
-			tool.ArgMap{
-				"author": tool.Argument{true, "author", false},
-				"desc":   tool.Argument{true, "description", false},
-				"id":     tool.Argument{true, "effect ID", false},
-				"name":   tool.Argument{true, "name", false}}},
-		[]string{"ll"}}
+		tool.QuickNamedArgs(tool.ArgMap{
+			"author": tool.QuickArgument(true, "author", false),
+			"desc":   tool.QuickArgument(true, "description", false),
+			"id":     tool.QuickArgument(true, "effect ID", false),
+			"name":   tool.QuickArgument(true, "name", false)}),
+		listLibs)
 
-	devAction := &tool.Action{
-		dev,
-		"dev",
-		tool.ArgumentList{},
-		[]string{}}
+	vA := tool.NewAction(
+		"version",
+		[]string{"ver", "v"},
+		"Shows version information.",
+		tool.QuickPosArgs(),
+		aboutTool)
 
-	licenseAction := &tool.Action{
-		license,
+	lA := tool.NewAction(
+		"license",
+		[]string{"licence", "l"},
 		"Shows license information.",
-		tool.ArgumentList{},
-		[]string{"l"}}
+		tool.QuickPosArgs(),
+		license)
 
-	MasterTool.AddAction("version", aboutToolAction)
-	MasterTool.AddAction("about-effect", describeEffectAction)
-	MasterTool.AddAction("about-lib", describeLibAction)
-	MasterTool.AddAction("list-effects", listEffectsAction)
-	MasterTool.AddAction("list-libs", listLibsAction)
-	MasterTool.AddAction("dev", devAction)
-	MasterTool.AddAction("license", licenseAction)
+	dA := tool.NewAction(
+		"dev",
+		[]string{},
+		"(for testing)",
+		tool.QuickPosArgs(),
+		dev)
+
+	MasterTool.AddAction("misc", dA)
+	MasterTool.AddManyActions("info", vA, lA)
+	MasterTool.AddManyActions("effects", deA, leA)
+	MasterTool.AddManyActions("libs", dlA, llA)
 }
