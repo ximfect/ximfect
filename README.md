@@ -3,7 +3,7 @@
 ![Go version](https://img.shields.io/github/go-mod/go-version/ximfect/ximfect?filename=src%2Fgo.mod&style=for-the-badge)
 ![License](https://img.shields.io/github/license/ximfect/ximfect?style=for-the-badge)
 ![Build](https://img.shields.io/github/workflow/status/ximfect/ximfect/Go%20Build?style=for-the-badge)
-![Commits since last release](https://img.shields.io/github/commits-since/ximfect/ximfect/latest?style=for-the-badge)
+![Commits since last release](https://img.shields.io/github/commits-since/ximfect/ximfect/latest/dev?style=for-the-badge)
 ![Downloads](https://img.shields.io/github/downloads/ximfect/ximfect/total?style=for-the-badge)
 ![Discord](https://img.shields.io/discord/739957197517095013?style=for-the-badge)
 
