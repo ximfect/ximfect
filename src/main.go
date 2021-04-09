@@ -30,8 +30,8 @@ func main() {
 			t.ToolLog.Debug("is package")
 			// prepare arguments
 			args = tool.ArgumentList{
-				PosArgs:   tool.ArgSlice{os.Args[1]},
-				NamedArgs: tool.ArgMap{}}
+				PArgs: tool.ArgSlice{os.Args[1]},
+				NArgs: tool.ArgMap{}}
 			// If the package is an effect package
 			if strings.HasSuffix(os.Args[1], ".fx.xpk") {
 				// use unpack-effect
@@ -56,8 +56,8 @@ func main() {
 			} else {
 				// Just use an empty ArgumentList
 				args = tool.ArgumentList{
-					PosArgs:   []string{},
-					NamedArgs: map[string]tool.Argument{}}
+					PArgs: []string{},
+					NArgs: map[string]tool.Argument{}}
 			}
 			// the action
 			act = os.Args[1]

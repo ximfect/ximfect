@@ -21,14 +21,14 @@ type ArgSlice []string
 
 // ArgumentList turns a slice of strings into usable Arguments
 type ArgumentList struct {
-	PosArgs   ArgSlice
-	NamedArgs ArgMap
+	PArgs ArgSlice
+	NArgs ArgMap
 }
 
 // FormatUsage formats this ArgumentList as if it was usage.
 func (l ArgumentList) FormatUsage() string {
 	out := ""
-	for _, a := range l.PosArgs {
+	for _, a := range l.PArgs {
 		if strings.HasSuffix(a, "?") {
 			out += "[" + a[0:len(a)-1] + "] "
 		} else {
@@ -36,7 +36,7 @@ func (l ArgumentList) FormatUsage() string {
 		}
 	}
 
-	for n, a := range l.NamedArgs {
+	for n, a := range l.NArgs {
 		if a.IsValue {
 			if a.BoolValue {
 				out += "<--" + n + " (" + a.Value + ")] "

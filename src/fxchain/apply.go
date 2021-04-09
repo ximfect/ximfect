@@ -35,7 +35,7 @@ func Apply(src string, img *ximgy.Image, ctx *tool.Context) (*ximgy.Image, error
 		log.Debug("Preparing arguments...")
 		a := tool.ArgumentList{}
 		for k, v := range pair.params {
-			a.NamedArgs[k] = tool.Argument{IsValue: true, Value: v, BoolValue: true}
+			a.NArgs[k] = tool.Argument{IsValue: true, Value: v, BoolValue: true}
 		}
 
 		// apply the effect

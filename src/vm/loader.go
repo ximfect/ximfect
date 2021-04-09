@@ -91,3 +91,33 @@ func LoadLib(path, id string) (*Lib, error) {
 func LoadAppdataLib(id string) (*Lib, error) {
 	return LoadLib(environ.DataPath("libs"), id)
 }
+
+// LoadEffect loads an Effect from the given directory with the given id.
+func LoadGenerator(path, id string) (*Generator, error) {
+	var err error
+
+	dir := environ.Combine(path, id)
+	meta := new(GeneratorMetadata)
+
+	// Populate ID as it's not present in effect.yml
+	meta.ID = id
+	// Open meta file
+	metaSource, err := os.Open(environ.Combine(dir, "generator.yml"))
+	if err != nil {
+		return nil, fmt.Errorf("error while loading metadata: %v", err)
+	}
+	// Create meta decoder & read meta
+	metaDecoder := yaml.NewDecoder(metaSource)
+	err = metaDecoder.Decode(meta)
+	if err != nil {
+		return nil, fmt.Errorf("error while reading metadata: %v", err)
+	}
+
+	// Return loaded effect
+	return NewGenerator(meta, dir), nil
+}
+
+// LoadAppdataEffect does what Load does, but path is always APPDATA
+func LoadAppdataGenerator(id string) (*Generator, error) {
+	return LoadGenerator(environ.DataPath("generators"), id)
+}

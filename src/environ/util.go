@@ -17,4 +17,5 @@ func EnsureAppdata() {
 	EnsureDir(ProgramData)
 	EnsureDir(DataPath("effects"))
 	EnsureDir(DataPath("libs"))
+	EnsureDir(DataPath("generator"))
 }
