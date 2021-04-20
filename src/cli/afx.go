@@ -264,6 +264,37 @@ func listEffects(ctx *tool.Context) error {
 	return nil
 }
 
+func convertImage(ctx *tool.Context) error {
+	if len(ctx.Args.PArgs) < 2 {
+		return errors.New("not enough arguments (want: input, output)")
+	}
+
+	input := ctx.Args.PArgs[0]
+	output := ctx.Args.PArgs[1]
+
+	if !strings.Contains(output, ".") {
+		output = input + "." + output
+	}
+
+	img, err := ximgy.Open(input)
+	if err != nil {
+		return err
+	}
+
+	for x := 0; x < img.Size.X; x++ {
+		for y := 0; y < img.Size.Y; y++ {
+			img.Set(x, y, img.At(x, y))
+		}
+	}
+
+	err = ximgy.Save(img, output)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func init() {
 	MasterTool.ToolLog.Debug("Loading actions from afx...")
 
@@ -306,5 +337,13 @@ func init() {
 			"name":   tool.QuickArgument(true, "name", false)}),
 		listEffects)
 
+	ciA := tool.NewAction(
+		"convert-image",
+		[]string{"ci"},
+		"Convert an image to any supported format.",
+		tool.QuickPosArgs("input", "filename/format"),
+		convertImage)
+
 	MasterTool.AddManyActions("effects", aeA, acA, ieA, deA, leA)
+	MasterTool.AddManyActions("misc", ciA)
 }

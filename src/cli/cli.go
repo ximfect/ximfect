@@ -21,7 +21,7 @@ func init() {
 
 	MasterTool.SetCategoryDesc("info", "Informational actions.")
 	MasterTool.SetCategoryDesc("effects", "Effect-related actions.")
-	MasterTool.SetCategoryDesc("libs", "Lib-related actions")
+	MasterTool.SetCategoryDesc("libs", "Lib-related actions.")
+	MasterTool.SetCategoryDesc("generators", "Generator-related actions.")
 	MasterTool.SetCategoryDesc("misc", "Miscellaneous actions.")
-	MasterTool.SetCategoryDesc("images", "Simple image manipulation actions.")
 }
