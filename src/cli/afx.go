@@ -1,6 +1,7 @@
 package cli
 
 import (
+	_ "embed"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -17,7 +18,14 @@ import (
 	"github.com/ximfect/ximgy"
 )
 
-func applyEffect(ctx *tool.Context) error {
+var (
+	//go:embed effect.lua
+	effectLua string
+	//go:embed effect.yml
+	effectYml string
+)
+
+func applyEffect(ctx *tool.Context, args tool.ArgList) error {
 	if len(ctx.Args.PArgs) < 3 {
 		return errors.New("not enough arguments (want: image, effect-id, output)")
 	}
@@ -58,13 +66,7 @@ func applyEffect(ctx *tool.Context) error {
 	return nil
 }
 
-const (
-	// templates for empty effects
-	scriptTemplate = "function effect(pixel)\n    -- your code here\n    return {r=pixel[\"r\"], g=pixel[\"g\"], b=pixel[\"b\"], a=pixel[\"a\"]}\nend\n"
-	metaTemplate   = "name: Empty Effect\nversion: 1.0.0\nauthor: unknown <>\ndesc: ximfect generated empty effect\n"
-)
-
-func initEffect(ctx *tool.Context) error {
+func initEffect(ctx *tool.Context, args tool.ArgList) error {
 	if len(ctx.Args.PArgs) < 1 {
 		return errors.New("not enough arguments (want: effect-id)")
 	}
@@ -103,11 +105,11 @@ func initEffect(ctx *tool.Context) error {
 	if !noTemplate {
 		// write the templates to the script and meta files
 		ctx.Log.Debug("Writing file templates...")
-		_, err = script.WriteString(scriptTemplate)
+		_, err = script.WriteString(effectLua)
 		if err != nil {
 			return err
 		}
-		_, err = meta.WriteString(metaTemplate)
+		_, err = meta.WriteString(effectYml)
 		if err != nil {
 			return err
 		}
@@ -118,7 +120,7 @@ func initEffect(ctx *tool.Context) error {
 	return nil
 }
 
-func applyChain(ctx *tool.Context) error {
+func applyChain(ctx *tool.Context, args tool.ArgList) error {
 	if len(ctx.Args.PArgs) < 3 {
 		return errors.New("not enough arguments (want: image, fx-chain, output)")
 	}
@@ -160,7 +162,7 @@ func applyChain(ctx *tool.Context) error {
 	return nil
 }
 
-func describeEffect(ctx *tool.Context) error {
+func describeEffect(ctx *tool.Context, args tool.ArgList) error {
 	if len(ctx.Args.PArgs) < 1 {
 		return errors.New("not enough arguments (want: effect-id)")
 	}
@@ -191,7 +193,7 @@ func describeEffect(ctx *tool.Context) error {
 	return nil
 }
 
-func listEffects(ctx *tool.Context) error {
+func listEffects(ctx *tool.Context, args tool.ArgList) error {
 	var (
 		nameFilter   string
 		idFilter     string
@@ -264,7 +266,7 @@ func listEffects(ctx *tool.Context) error {
 	return nil
 }
 
-func convertImage(ctx *tool.Context) error {
+func convertImage(ctx *tool.Context, args tool.ArgList) error {
 	if len(ctx.Args.PArgs) < 2 {
 		return errors.New("not enough arguments (want: input, output)")
 	}

@@ -19,7 +19,7 @@ func main() {
 	var (
 		err  error
 		act  string
-		args tool.ArgumentList
+		args tool.ArgList
 	)
 
 	// If we have at least 1 argument
@@ -29,7 +29,7 @@ func main() {
 			// debug message
 			t.ToolLog.Debug("is package")
 			// prepare arguments
-			args = tool.ArgumentList{
+			args = tool.ArgList{
 				PArgs: tool.ArgSlice{os.Args[1]},
 				NArgs: tool.ArgMap{}}
 			// If the package is an effect package
@@ -55,9 +55,9 @@ func main() {
 				// If not
 			} else {
 				// Just use an empty ArgumentList
-				args = tool.ArgumentList{
+				args = tool.ArgList{
 					PArgs: []string{},
-					NArgs: map[string]tool.Argument{}}
+					NArgs: map[string]tool.Arg{}}
 			}
 			// the action
 			act = os.Args[1]

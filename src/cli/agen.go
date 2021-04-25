@@ -15,14 +15,14 @@ import (
 	"github.com/ximfect/ximgy"
 )
 
-func generate(ctx *tool.Context) error {
-	if len(ctx.Args.PArgs) < 2 {
+func generate(ctx *tool.Context, args tool.ArgList) error {
+	if len(args.PArgs) < 2 {
 		return errors.New("not enough arguments (want: generator-id, output)")
 	}
 
 	var size image.Point
 	var err error
-	sizeArg, hasSize := ctx.Args.NArgs["size"]
+	sizeArg, hasSize := args.NArgs["size"]
 	if hasSize {
 		sizeElems := strings.Split(sizeArg.Value, "x")
 		if len(sizeElems) != 2 {
@@ -43,7 +43,7 @@ func generate(ctx *tool.Context) error {
 		size.Y = 1024
 	}
 
-	generator, err := vm.LoadAppdataGenerator(ctx.Args.PArgs[0])
+	generator, err := vm.LoadAppdataGenerator(args.PArgs[0])
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func generate(ctx *tool.Context) error {
 		return err
 	}
 
-	err = ximgy.Save(out, ctx.Args.PArgs[1])
+	err = ximgy.Save(out, args.PArgs[1])
 	if err != nil {
 		return err
 	}
@@ -61,14 +61,14 @@ func generate(ctx *tool.Context) error {
 	return nil
 }
 
-func describeGenerator(ctx *tool.Context) error {
-	if len(ctx.Args.PArgs) < 1 {
+func describeGenerator(ctx *tool.Context, args tool.ArgList) error {
+	if len(args.PArgs) < 1 {
 		return errors.New("not enough arguments (want: generator-id)")
 	}
 
 	// TODO: find a different way to make it case insensitive
-	// effName := strings.ToLower(ctx.Args.PosArgs[0])
-	genName := ctx.Args.PArgs[0]
+	// effName := strings.ToLower(args.PosArgs[0])
+	genName := args.PArgs[0]
 
 	ctx.Log.Debug("Loading generator: " + genName)
 	// load the effect by id from appdata
@@ -92,7 +92,7 @@ func describeGenerator(ctx *tool.Context) error {
 	return nil
 }
 
-func listGenerators(ctx *tool.Context) error {
+func listGenerators(ctx *tool.Context, args tool.ArgList) error {
 	var (
 		nameFilter   string
 		idFilter     string
@@ -102,28 +102,28 @@ func listGenerators(ctx *tool.Context) error {
 		amt = -1
 	)
 
-	nameArg, ok := ctx.Args.NArgs["name"]
+	nameArg, ok := args.NArgs["name"]
 	if !ok {
 		nameFilter = ""
 	} else {
 		nameFilter = strings.ToLower(nameArg.Value)
 	}
 
-	idArg, ok := ctx.Args.NArgs["id"]
+	idArg, ok := args.NArgs["id"]
 	if !ok {
 		idFilter = ""
 	} else {
 		idFilter = strings.ToLower(idArg.Value)
 	}
 
-	authorArg, ok := ctx.Args.NArgs["author"]
+	authorArg, ok := args.NArgs["author"]
 	if !ok {
 		authorFilter = ""
 	} else {
 		authorFilter = strings.ToLower(authorArg.Value)
 	}
 
-	descArg, ok := ctx.Args.NArgs["desc"]
+	descArg, ok := args.NArgs["desc"]
 	if !ok {
 		descFilter = ""
 	} else {
@@ -172,7 +172,7 @@ func init() {
 		"generate",
 		[]string{"gi"},
 		"Uses a generator to create an image.",
-		tool.ArgumentList{
+		tool.ArgList{
 			PArgs: tool.ArgSlice{"generator-id", "output"},
 			NArgs: tool.ArgMap{
 				"size": tool.QuickArgument(true, "WIDTHxHEIGHT", false)}},
