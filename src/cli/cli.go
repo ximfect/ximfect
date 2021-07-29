@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"os"
-
 	"ximfect/tool"
 )
 
@@ -13,12 +11,11 @@ var MasterTool = tool.NewTool(
 	tool.Version)
 
 func init() {
-	for _, a := range os.Args {
-		if a == "--debug" {
-			MasterTool.MasterLog.SetLevel(0)
-		}
-	}
-
+	// --- see NewTool()
+	// for _, a := range os.Args {
+	// 	if a == "--debug" {
+	// 		MasterTool.MasterLog.SetLevel(0)
+	// 	}
 	MasterTool.SetCategoryDesc("info", "Informational actions.")
 	MasterTool.SetCategoryDesc("effects", "Effect-related actions.")
 	MasterTool.SetCategoryDesc("libs", "Lib-related actions.")

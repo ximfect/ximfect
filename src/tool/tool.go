@@ -3,6 +3,7 @@ package tool
 import (
 	"errors"
 	"fmt"
+	"os"
 )
 
 // Tool represents an action-based CLI
@@ -18,7 +19,15 @@ type Tool struct {
 // NewTool is self-explainatory
 func NewTool(name, desc, version string) *Tool {
 	cats := make(CategoryMap)
-	master := NewMasterLog(1)
+	// we will have to check os.Args here to make sure it's debug-level from the
+	// get-go and we miss absolutely 0 messages
+	lvl := 1
+	for _, a := range os.Args {
+		if a == "--debug" {
+			lvl = 0
+		}
+	}
+	master := NewMasterLog(lvl)
 	toolLog := master.Sub("Tool")
 	return &Tool{cats, name, desc, version, master, toolLog}
 }
@@ -114,4 +123,10 @@ func (t *Tool) SetCategoryDesc(cat, desc string) {
 	categ := t.Categories[cat]
 	categ.Desc = desc
 	t.Categories[cat] = categ
+}
+
+// Close cleans up after the tool is done doing the thing
+func (t *Tool) Close() {
+	t.ToolLog.Debug("Closing.")
+	t.MasterLog.Cleanup()
 }

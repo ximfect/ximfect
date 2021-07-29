@@ -259,7 +259,7 @@ func (g *Generator) vm(size image.Point, ctx *tool.Context) (*lua.LState, error)
 	log.Debug("Checking if effect is correct...")
 	fxfnVal := vm.GetGlobal("generate")
 	if fxfnVal.Type() != lua.LTFunction {
-		return nil, errors.New("effect does not define effect() function")
+		return nil, errors.New("generator does not define generate() function")
 	}
 
 	// add our public api:

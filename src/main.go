@@ -12,6 +12,7 @@ import (
 func main() {
 	// The main CLI for the application
 	t := cli.MasterTool
+	defer t.Close()
 
 	// Make sure that the appdata directories exist
 	environ.EnsureAppdata()
