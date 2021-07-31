@@ -2,11 +2,11 @@ name: Go Build
 
 on:
   push:
-    branches: 
+    branches:
       - master
       - dev
   pull_request:
-    branches: 
+    branches:
       - master
       - dev
 
@@ -15,27 +15,26 @@ jobs:
     name: Build on Ubuntu
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.13
+        id: go
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.13
-      id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      - name: Get dependencies
+        run: |
+          cd src
+          go get ./...
 
-    - name: Get dependencies
-      run: |
-        cd src
-        go get ./...
+      - name: Build
+        run: |
+          cd testing
+          python3 ./build.py
 
-    - name: Build
-      run: |
-        cd testing
-        python3 ./build.py
-
-    - name: Test
-      run: |
-        cd testing
-        ./ximfect version
+      - name: Test
+        run: |
+          cd testing
+          sudo ./ximfect version
