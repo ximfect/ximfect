@@ -6,17 +6,34 @@ import (
 	"os"
 )
 
-func EnsureDir(path string) {
-	target, err := os.Stat(path)
-	if err != nil || !target.IsDir() {
-		_ = os.Mkdir(path, os.ModePerm)
+func EnsureDir(path string) error {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(path, os.ModePerm)
+		if err != nil {
+			return err
+		}
 	}
+	return err
 }
 
-func EnsureAppdata() {
-	EnsureDir(ProgramData)
-	EnsureDir(DataPath("effects"))
-	EnsureDir(DataPath("libs"))
-	EnsureDir(DataPath("generators"))
-	EnsureDir(DataPath("logs"))
+func EnsureAppdata() error {
+	err := EnsureDir(ProgramData)
+	if err != nil {
+		return err
+	}
+	err = EnsureDir(DataPath("effects"))
+	if err != nil {
+		return err
+	}
+	err = EnsureDir(DataPath("libs"))
+	if err != nil {
+		return err
+	}
+	err = EnsureDir(DataPath("generators"))
+	if err != nil {
+		return err
+	}
+	err = EnsureDir(DataPath("logs"))
+	return err
 }

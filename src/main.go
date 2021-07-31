@@ -15,10 +15,13 @@ func main() {
 	defer t.Close()
 
 	// Make sure that the appdata directories exist
-	environ.EnsureAppdata()
+	err := environ.EnsureAppdata()
+	if err != nil {
+		t.ToolLog.Error("program data structure does not exist: " + err.Error())
+		os.Exit(2)
+	}
 
 	var (
-		err  error
 		act  string
 		args tool.ArgList
 	)
