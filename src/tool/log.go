@@ -105,9 +105,11 @@ func (m *MasterLog) Cleanup() {
 	l := m.Sub("Master")
 	l.Debug("Cleaning up.")
 
-	// close the file, it's not needed anymore
-	m.file.Close()
-	m.fileOk = false
+	// close the file if we have one, it's not needed anymore
+	if m.fileOk {
+		m.file.Close()
+		m.fileOk = false
+	}
 
 	// rename the latest log file to the correct name
 	l.Debug("Renaming log file")
