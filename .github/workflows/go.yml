@@ -34,7 +34,14 @@ jobs:
           cd testing
           python3 ./build.py
 
-      - name: Test
+      - name: Test (Version)
         run: |
           cd testing
           sudo ./ximfect version
+
+      - name: Test (Generate Image + Apply Effect)
+        run: |
+          cp pack/* /usr/local/ximfect
+          cd testing
+          sudo ./ximfect gi noise noise.png --debug
+          sudo ./ximfect ae noise.png blur noise_blurred.png --debug

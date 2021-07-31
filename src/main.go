@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"ximfect/cli"
@@ -18,6 +19,13 @@ func main() {
 	err := environ.EnsureAppdata()
 	if err != nil {
 		t.ToolLog.Error("program data structure does not exist: " + err.Error())
+		// permission denied
+		if os.IsPermission(err) {
+			fmt.Println(
+				"ximfect could not create it's data directory, which is",
+				"required for ximfect to run.", environ.PermWarn)
+			// PermWarn suggests a platform-dependent solution to the problem
+		}
 		os.Exit(2)
 	}
 

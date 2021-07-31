@@ -66,7 +66,12 @@ func NewMasterLog(lvl int) *MasterLog {
 	start.Debug("Log file is " + fn)
 	file, err := os.Create(fn)
 	if err != nil {
-		start.Warn("could not create log file: " + err.Error())
+		start.Warn("could not create log file: " + err.Error() +
+			// very long note explaining that this isn't a real problem
+			"\n\nIf this is your first time running ximfect: Don't worry!" +
+			"\n\nThe data directory hasn't been created yet, so the log file " +
+			"can't be created in it. This problem will solve itself next time" +
+			" you use ximfect.\n")
 	} else {
 		ml.file = file
 		ml.fileOk = true
@@ -117,7 +122,8 @@ func (m *MasterLog) Cleanup() {
 		environ.DataPath("logs", "latest.log"),
 		environ.DataPath("logs", m.start.Format("2006-01-02_15-04")+".log"))
 	if err != nil {
-		l.Warn("log file could not be renamed: " + err.Error())
+		l.Warn("log file could not be renamed: " + err.Error() +
+			"\n(you can ignore this too)")
 	}
 
 	// ensure the thing isn't usable anymore
