@@ -12,12 +12,12 @@ import (
 	"ximfect/vm"
 )
 
-func packEffect(ctx *tool.Context) error {
-	if len(ctx.Args.PArgs) < 1 {
+func packEffect(ctx *tool.Context, args tool.ArgList) error {
+	if len(args.PArgs) < 1 {
 		return errors.New("not enough arguments (want: effect-id)")
 	}
 
-	effID := strings.ToLower(ctx.Args.PArgs[0])
+	effID := strings.ToLower(args.PArgs[0])
 
 	ctx.Log.Debug("Loading effect: " + effID)
 	effObj, err := vm.LoadAppdataEffect(effID)
@@ -45,12 +45,12 @@ func packEffect(ctx *tool.Context) error {
 	return nil
 }
 
-func packLib(ctx *tool.Context) error {
-	if len(ctx.Args.PArgs) < 1 {
+func packLib(ctx *tool.Context, args tool.ArgList) error {
+	if len(args.PArgs) < 1 {
 		return errors.New("not enough arguments (want: lib-id)")
 	}
 
-	libID := strings.ToLower(ctx.Args.PArgs[0])
+	libID := strings.ToLower(args.PArgs[0])
 
 	ctx.Log.Debug("Loading lib: " + libID)
 	libObj, err := vm.LoadAppdataLib(libID)
@@ -78,12 +78,12 @@ func packLib(ctx *tool.Context) error {
 	return nil
 }
 
-func packGenerator(ctx *tool.Context) error {
-	if len(ctx.Args.PArgs) < 1 {
+func packGenerator(ctx *tool.Context, args tool.ArgList) error {
+	if len(args.PArgs) < 1 {
 		return errors.New("not enough arguments (want: generator-id)")
 	}
 
-	genID := strings.ToLower(ctx.Args.PArgs[0])
+	genID := strings.ToLower(args.PArgs[0])
 
 	ctx.Log.Debug("Loading generator: " + genID)
 	gen, err := vm.LoadAppdataGenerator(genID)
@@ -111,12 +111,12 @@ func packGenerator(ctx *tool.Context) error {
 	return nil
 }
 
-func unpackEffect(ctx *tool.Context) error {
-	if len(ctx.Args.PArgs) < 1 {
+func unpackEffect(ctx *tool.Context, args tool.ArgList) error {
+	if len(args.PArgs) < 1 {
 		return errors.New("not enough arguments (want: package)")
 	}
 
-	packageFilename := ctx.Args.PArgs[0]
+	packageFilename := args.PArgs[0]
 
 	ctx.Log.Debug("Reading file: " + packageFilename)
 	raw, err := ioutil.ReadFile(packageFilename)
@@ -141,12 +141,12 @@ func unpackEffect(ctx *tool.Context) error {
 	return nil
 }
 
-func unpackLib(ctx *tool.Context) error {
-	if len(ctx.Args.PArgs) < 1 {
+func unpackLib(ctx *tool.Context, args tool.ArgList) error {
+	if len(args.PArgs) < 1 {
 		return errors.New("not enough arguments (want: package)")
 	}
 
-	packageFilename := ctx.Args.PArgs[0]
+	packageFilename := args.PArgs[0]
 
 	ctx.Log.Debug("Reading file: " + packageFilename)
 	raw, err := ioutil.ReadFile(packageFilename)
@@ -169,12 +169,12 @@ func unpackLib(ctx *tool.Context) error {
 	return nil
 }
 
-func unpackGenerator(ctx *tool.Context) error {
-	if len(ctx.Args.PArgs) < 1 {
+func unpackGenerator(ctx *tool.Context, args tool.ArgList) error {
+	if len(args.PArgs) < 1 {
 		return errors.New("not enough arguments (want: package)")
 	}
 
-	packageFilename := ctx.Args.PArgs[0]
+	packageFilename := args.PArgs[0]
 
 	ctx.Log.Debug("Reading file: " + packageFilename)
 	raw, err := ioutil.ReadFile(packageFilename)

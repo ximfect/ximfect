@@ -9,8 +9,8 @@ import (
 	"github.com/ximfect/ximgy"
 )
 
-func help(ctx *tool.Context) error {
-	if len(ctx.Args.PArgs) == 0 {
+func help(ctx *tool.Context, args tool.ArgList) error {
+	if len(args.PArgs) == 0 {
 		ctx.Tool.PrintTitle()
 		fmt.Print("\n" + ctx.Tool.Desc + "\n\n")
 
@@ -26,7 +26,7 @@ func help(ctx *tool.Context) error {
 			fmt.Print("        " + cat.Desc + "\n")
 		}
 	} else {
-		arg := ctx.Args.PArgs[0]
+		arg := args.PArgs[0]
 		cat, isCat := ctx.Tool.Categories[arg]
 		act, isAct := ctx.Tool.GetAction(arg)
 		if isCat {
@@ -66,12 +66,12 @@ func help(ctx *tool.Context) error {
 	return nil
 }
 
-func aboutTool(ctx *tool.Context) error {
+func aboutTool(ctx *tool.Context, args tool.ArgList) error {
 	fmt.Println(ctx.Tool.Version, "build", tool.Build)
 	return nil
 }
 
-func license(ctx *tool.Context) error {
+func license(ctx *tool.Context, args tool.ArgList) error {
 	fmt.Println(ctx.Tool.Name, tool.Version, ":", ctx.Tool.Desc)
 	fmt.Println(`
     Copyright (C) 2020-2021  qeaml
@@ -92,7 +92,7 @@ func license(ctx *tool.Context) error {
 	return nil
 }
 
-func dev(ctx *tool.Context) error {
+func dev(ctx *tool.Context, args tool.ArgList) error {
 	g, e := vm.LoadAppdataGenerator("white")
 	if e != nil {
 		return e

@@ -93,7 +93,7 @@ func (t *Tool) GetAction(name string) (*Action, bool) {
 }
 
 // RunAction runs an action in this Tool
-func (t *Tool) RunAction(name string, args ArgumentList) error {
+func (t *Tool) RunAction(name string, args ArgList) error {
 	// debug message
 	t.ToolLog.Debug("Running action: " + name)
 	// Get the action
@@ -109,7 +109,7 @@ func (t *Tool) RunAction(name string, args ArgumentList) error {
 	// create a context for the action
 	ctx := &Context{t, args, log}
 	// run the action and error out if necessary
-	if err := action.Func(ctx); err != nil {
+	if err := action.Func(ctx, args); err != nil {
 		log.Error(err.Error())
 		return err
 	}

@@ -6,27 +6,27 @@ import (
 	"strings"
 )
 
-// Argument represents a CLI argument.
-type Argument struct {
+// Arg represents a CLI argument.
+type Arg struct {
 	IsValue   bool
 	Value     string
 	BoolValue bool
 }
 
 // ArgMap is a string->Argument map.
-type ArgMap map[string]Argument
+type ArgMap map[string]Arg
 
 // ArgSlice is an Argument slice.
 type ArgSlice []string
 
-// ArgumentList turns a slice of strings into usable Arguments
-type ArgumentList struct {
+// ArgList turns a slice of strings into usable Arguments
+type ArgList struct {
 	PArgs ArgSlice
 	NArgs ArgMap
 }
 
 // FormatUsage formats this ArgumentList as if it was usage.
-func (l ArgumentList) FormatUsage() string {
+func (l ArgList) FormatUsage() string {
 	out := ""
 	for _, a := range l.PArgs {
 		if strings.HasSuffix(a, "?") {
@@ -56,7 +56,7 @@ func (l ArgumentList) FormatUsage() string {
 }
 
 // GetArgv reads the input string slice and turns it into an ArgumentList.
-func GetArgv(src []string) ArgumentList {
+func GetArgv(src []string) ArgList {
 	src = append(src, "--")
 	// Get positional arguments
 	posArgs := []string{}
@@ -103,25 +103,25 @@ func GetArgv(src []string) ArgumentList {
 			hasName = false
 			hasValue = false
 			if valueIsB {
-				namedArgs[name] = Argument{false, "", valueB}
+				namedArgs[name] = Arg{false, "", valueB}
 				i--
 			} else {
-				namedArgs[name] = Argument{true, valueS, true}
+				namedArgs[name] = Arg{true, valueS, true}
 			}
 		}
 	}
 	// Combine and return
-	return ArgumentList{posArgs, namedArgs}
+	return ArgList{posArgs, namedArgs}
 }
 
-func QuickPosArgs(args ...string) ArgumentList {
-	return ArgumentList{ArgSlice(args), ArgMap{}}
+func QuickPosArgs(args ...string) ArgList {
+	return ArgList{ArgSlice(args), ArgMap{}}
 }
 
-func QuickNamedArgs(args ArgMap) ArgumentList {
-	return ArgumentList{ArgSlice{}, args}
+func QuickNamedArgs(args ArgMap) ArgList {
+	return ArgList{ArgSlice{}, args}
 }
 
-func QuickArgument(v bool, d string, r bool) Argument {
-	return Argument{v, d, r}
+func QuickArgument(v bool, d string, r bool) Arg {
+	return Arg{v, d, r}
 }

@@ -14,6 +14,115 @@ import (
 	"github.com/ximfect/ximgy"
 )
 
+// returns a fresh new vm state to be used
+func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
+	log := ctx.Log.Sub("VM")
+
+	// create an empty state
+	log.Debug("Creating state...")
+	vm := lua.NewState()
+
+	// run the effect file
+	log.Debug("Adding effect...")
+	err := vm.DoFile(environ.Combine(e.Dir, "effect.lua"))
+	if err != nil {
+		return nil, err
+	}
+
+	// check if an effect function is defined
+	log.Debug("Checking if effect is correct...")
+	fxfnVal := vm.GetGlobal("effect")
+	if fxfnVal.Type() != lua.LTFunction {
+		return nil, errors.New("effect does not define effect() function")
+	}
+
+	// add our public api:
+	// to see what each function does, scroll down to it's definition
+	log.Debug("Adding API functions...")
+	addFunc(vm, "arg", vmArg(ctx))
+	addFunc(vm, "at", vmAt(img))
+	addFunc(vm, "size", vmSize(img.Size))
+	addFunc(vm, "import", vmImport)
+	addFunc(vm, "random", vmRandom)
+	addFunc(vm, "randint", vmRandInt)
+	addFunc(vm, "inspect", vmInspect)
+	addFunc(vm, "int", vmInt)
+	addFunc(vm, "debug", vmDebug(log))
+	addFunc(vm, "info", vmInfo(log))
+	addFunc(vm, "warn", vmWarn(log))
+	addFunc(vm, "pixel", vmPixel)
+
+	// apply preload if necessary
+	if len(e.Metadata.Preload) > 0 {
+		log.Debug("Applying preload...")
+		for _, file := range e.Metadata.Preload {
+			err = vm.DoFile(environ.Combine(e.Dir, file))
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	log.Debug("Done!")
+	return vm, nil
+}
+
+// returns a fresh new vm state to be used
+func (g *Generator) vm(size image.Point, ctx *tool.Context) (*lua.LState, error) {
+	log := ctx.Log.Sub("VM")
+
+	// create an empty state
+	log.Debug("Creating state...")
+	vm := lua.NewState()
+
+	// run the effect file
+	log.Debug("Adding effect...")
+	err := vm.DoFile(environ.Combine(g.Dir, "generator.lua"))
+	if err != nil {
+		return nil, err
+	}
+
+	// check if an effect function is defined
+	log.Debug("Checking if effect is correct...")
+	fxfnVal := vm.GetGlobal("generate")
+	if fxfnVal.Type() != lua.LTFunction {
+		return nil, errors.New("effect does not define effect() function")
+	}
+
+	// add our public api:
+	log.Debug("Adding API functions...")
+	addFunc(vm, "arg", vmArg(ctx))
+	addFunc(vm, "size", vmSize(size))
+	addFunc(vm, "import", vmImport)
+	addFunc(vm, "random", vmRandom)
+	addFunc(vm, "randint", vmRandInt)
+	addFunc(vm, "inspect", vmInspect)
+	addFunc(vm, "int", vmInt)
+	addFunc(vm, "debug", vmDebug(log))
+	addFunc(vm, "info", vmInfo(log))
+	addFunc(vm, "warn", vmWarn(log))
+	addFunc(vm, "pixel", vmPixel)
+
+	// apply preload if necessary
+	if len(g.Metadata.Preload) > 0 {
+		log.Debug("Applying preload...")
+		for _, file := range g.Metadata.Preload {
+			err = vm.DoFile(environ.Combine(g.Dir, file))
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	log.Debug("Done!")
+	return vm, nil
+}
+
+// convenience function
+func addFunc(L *lua.LState, n string, f func(L *lua.LState) int) {
+	L.SetGlobal(n, L.NewFunction(f))
+}
+
 // gets a named argument from the CLI call
 func vmArg(ctx *tool.Context) func(L *lua.LState) int {
 	return (func(L *lua.LState) int {
@@ -188,105 +297,35 @@ func vmWarn(log *tool.Log) func(L *lua.LState) int {
 	})
 }
 
-// returns a fresh new vm state to be used
-func (e *Effect) vm(img *ximgy.Image, ctx *tool.Context) (*lua.LState, error) {
-	log := ctx.Log.Sub("VM")
+// returns a table representing a pixel
+func vmPixel(L *lua.LState) int {
+	valR := L.Get(1)
+	valG := L.Get(2)
+	valB := L.Get(3)
+	valA := L.Get(4)
 
-	// create an empty state
-	log.Debug("Creating state...")
-	vm := lua.NewState()
-
-	// run the effect file
-	log.Debug("Adding effect...")
-	err := vm.DoFile(environ.Combine(e.Dir, "effect.lua"))
-	if err != nil {
-		return nil, err
+	if valR.Type() != lua.LTNumber {
+		valR = lua.LNumber(0)
 	}
 
-	// check if an effect function is defined
-	log.Debug("Checking if effect is correct...")
-	fxfnVal := vm.GetGlobal("effect")
-	if fxfnVal.Type() != lua.LTFunction {
-		return nil, errors.New("effect does not define effect() function")
+	if valG.Type() != lua.LTNumber {
+		valG = lua.LNumber(0)
 	}
 
-	// add our public api:
-	// to see what each function does, scroll up to it's definition
-	log.Debug("Adding API functions...")
-	vm.SetGlobal("arg", vm.NewFunction(vmArg(ctx)))
-	vm.SetGlobal("at", vm.NewFunction(vmAt(img)))
-	vm.SetGlobal("size", vm.NewFunction(vmSize(img.Size)))
-	vm.SetGlobal("import", vm.NewFunction(vmImport))
-	vm.SetGlobal("random", vm.NewFunction(vmRandom))
-	vm.SetGlobal("randint", vm.NewFunction(vmRandInt))
-	vm.SetGlobal("inspect", vm.NewFunction(vmInspect))
-	vm.SetGlobal("int", vm.NewFunction(vmInt))
-	vm.SetGlobal("debug", vm.NewFunction(vmDebug(log)))
-	vm.SetGlobal("info", vm.NewFunction(vmInfo(log)))
-	vm.SetGlobal("warn", vm.NewFunction(vmWarn(log)))
-
-	// apply preload if necessary
-	if len(e.Metadata.Preload) > 0 {
-		log.Debug("Applying preload...")
-		for _, file := range e.Metadata.Preload {
-			err = vm.DoFile(environ.Combine(e.Dir, file))
-			if err != nil {
-				return nil, err
-			}
-		}
+	if valB.Type() != lua.LTNumber {
+		valB = lua.LNumber(0)
 	}
 
-	log.Debug("Done!")
-	return vm, nil
-}
-
-// returns a fresh new vm state to be used
-func (g *Generator) vm(size image.Point, ctx *tool.Context) (*lua.LState, error) {
-	log := ctx.Log.Sub("VM")
-
-	// create an empty state
-	log.Debug("Creating state...")
-	vm := lua.NewState()
-
-	// run the effect file
-	log.Debug("Adding effect...")
-	err := vm.DoFile(environ.Combine(g.Dir, "generator.lua"))
-	if err != nil {
-		return nil, err
+	if valA.Type() != lua.LTNumber {
+		valA = lua.LNumber(255)
 	}
 
-	// check if an effect function is defined
-	log.Debug("Checking if effect is correct...")
-	fxfnVal := vm.GetGlobal("generate")
-	if fxfnVal.Type() != lua.LTFunction {
-		return nil, errors.New("generator does not define generate() function")
-	}
+	tbl := L.NewTable()
+	tbl.RawSetString("r", valR)
+	tbl.RawSetString("g", valG)
+	tbl.RawSetString("b", valB)
+	tbl.RawSetString("a", valA)
+	L.Push(tbl)
 
-	// add our public api:
-	// to see what each function does, scroll up to it's definition
-	log.Debug("Adding API functions...")
-	vm.SetGlobal("arg", vm.NewFunction(vmArg(ctx)))
-	vm.SetGlobal("size", vm.NewFunction(vmSize(size)))
-	vm.SetGlobal("import", vm.NewFunction(vmImport))
-	vm.SetGlobal("random", vm.NewFunction(vmRandom))
-	vm.SetGlobal("randint", vm.NewFunction(vmRandInt))
-	vm.SetGlobal("inspect", vm.NewFunction(vmInspect))
-	vm.SetGlobal("int", vm.NewFunction(vmInt))
-	vm.SetGlobal("debug", vm.NewFunction(vmDebug(log)))
-	vm.SetGlobal("info", vm.NewFunction(vmInfo(log)))
-	vm.SetGlobal("warn", vm.NewFunction(vmWarn(log)))
-
-	// apply preload if necessary
-	if len(g.Metadata.Preload) > 0 {
-		log.Debug("Applying preload...")
-		for _, file := range g.Metadata.Preload {
-			err = vm.DoFile(environ.Combine(g.Dir, file))
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	log.Debug("Done!")
-	return vm, nil
+	return 1
 }

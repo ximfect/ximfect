@@ -5,24 +5,24 @@ import "strings"
 // Context represents an Action's execution context
 type Context struct {
 	Tool *Tool
-	Args ArgumentList
+	Args ArgList
 	Log  *Log
 }
 
 // ActionFunc represents an Action's function
-type ActionFunc func(*Context) error
+type ActionFunc func(*Context, ArgList) error
 
 // Action represents a Tool's action
 type Action struct {
 	Name  string
 	Alias []string
 	Desc  string
-	Usage ArgumentList
+	Usage ArgList
 	Func  ActionFunc
 }
 
 // NewAction is self-explainatory
-func NewAction(n string, a []string, d string, u ArgumentList, f ActionFunc) *Action {
+func NewAction(n string, a []string, d string, u ArgList, f ActionFunc) *Action {
 	tmp := new(Action)
 	tmp.Name = strings.ToLower(n)
 	tmp.Alias = a
