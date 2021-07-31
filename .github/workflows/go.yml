@@ -41,7 +41,7 @@ jobs:
 
       - name: Test (Generate Image + Apply Effect)
         run: |
-          cp -r ./release/* /usr/local/ximfect
+          sudo cp -r ./release/* /usr/local/ximfect
           cd testing
           sudo ./ximfect gi noise noise.png --debug
           sudo ./ximfect ae noise.png blur noise_blurred.png --debug
